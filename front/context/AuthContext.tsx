@@ -8,7 +8,7 @@ type AuthContextType = {
     isLoading: boolean;
 };
 
-const AuthContext = createContext<AuthContextType>({
+export const AuthContext = createContext<AuthContextType>({
     user: null,
     isLoading: true,
 });
@@ -20,15 +20,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const res = await fetcher("/api/auth/me", {
+                const data = await fetcher("/api/user/me", {
                     credentials: "include"
                 })
-                if (res.ok) {
-                    const data = await res.json()
-                    setUser(data)
-                } else {
-                    setUser(null)
-                }
+                setUser(data)
             } catch (error) {
                 console.error("Error checking authentication:", error)
                 setUser(null)

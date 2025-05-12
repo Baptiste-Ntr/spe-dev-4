@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation"
 
 export default function AuthPage() {
 
-    const { register, handleSubmit, setError, formState: { errors } } = useForm<{ email: string, password: string, confirmPassword?: string }>()
+    const { register, handleSubmit, setError, formState: { errors } } = useForm<{ email: string, password: string, confirmPassword?: string, firstName?: string, lastName?: string }>()
 
     const [isRegister, setIsRegister] = useState(false)
 
@@ -80,6 +80,18 @@ export default function AuthPage() {
                             className={errors.email ? "border-red-500" : ""}
                         />
                     </div>
+                    {isRegister && (
+                        <div className="space-y-2">
+                            <Label htmlFor="firstName">First Name</Label>
+                            <Input id="firstName" {...register("firstName")} />
+                        </div>
+                    )}
+                    {isRegister && (
+                        <div className="space-y-2">
+                            <Label htmlFor="lastName">Last Name</Label>
+                            <Input id="lastName" {...register("lastName")} />
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <Label htmlFor="password">Password</Label>
                         <div className="relative">

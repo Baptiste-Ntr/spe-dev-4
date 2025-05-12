@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Request, UseGuards, UnauthorizedException, Res, Get, Req } from '@nestjs/common';
+import { Controller, Post, Body, Res, UseGuards, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { JwtAuthGuard } from './jwt.auth.guard';
@@ -6,12 +6,6 @@ import { JwtAuthGuard } from './jwt.auth.guard';
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService) { }
-
-    @UseGuards(JwtAuthGuard)
-    @Get('me')
-    getProfile(@Req() req) {
-        return req.user
-    }
 
     @Post('login')
     async login(@Body() body, @Res({ passthrough: true }) res: Response) {
@@ -32,5 +26,11 @@ export class AuthController {
     @Post('register')
     async register(@Body() body) {
         return this.authService.register(body);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('logout')
+    async logout(@Res({ passthrough: true }) res: Response) {
+        return this.authService.logout(res);
     }
 }

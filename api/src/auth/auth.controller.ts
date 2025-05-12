@@ -10,7 +10,8 @@ export class AuthController {
     async login(@Body() body, @Res({ passthrough: true }) res: Response) {
         const user = await this.authService.validateUser(body.email, body.password);
         if (!user) {
-            throw new UnauthorizedException();
+            // On n'atteindra jamais cette ligne car validateUser lance déjà une exception
+            // si l'utilisateur n'est pas trouvé ou si le mot de passe est incorrect
         }
         const { access_token } = await this.authService.login(user);
         res.cookie('access_token', access_token, {

@@ -49,8 +49,11 @@ export default function AuthPage() {
             console.log(res)
             toast.success(`Successfully ${isRegister ? "registered" : "logged in"}`)
         } catch (error) {
-            console.error(error)
-            toast.error("Something went wrong")
+            let message = "Something went wrong";
+            if (error instanceof Error) {
+                message = error.message;
+            }
+            toast.error(message);
         } finally {
             setIsLoading(false)
         }

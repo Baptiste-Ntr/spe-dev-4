@@ -9,6 +9,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { fetcher } from "@/lib/fetcher"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 export default function AuthPage() {
 
@@ -19,6 +20,8 @@ export default function AuthPage() {
     const [showPassword, setShowPassword] = useState(false)
 
     const [isLoading, setIsLoading] = useState(false)
+
+    const router = useRouter()
 
     const onSubmit = async (data: { email: string, password: string, confirmPassword?: string }) => {
         // Vérification du format de l'email
@@ -35,7 +38,7 @@ export default function AuthPage() {
             toast.error("Les mots de passe ne correspondent pas");
             return;
         }
-        console.log(data)
+        // console.log(data)
         try {
             setIsLoading(true)
             const res = await fetcher(`/api/auth/${isRegister ? "register" : "login"}`, {
@@ -48,6 +51,7 @@ export default function AuthPage() {
             })
             console.log(res)
             toast.success(`Successfully ${isRegister ? "registered" : "logged in"}`)
+            router.push("/dashboard")
         } catch (error) {
             let message = "Something went wrong";
             if (error instanceof Error) {

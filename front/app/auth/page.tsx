@@ -12,7 +12,7 @@ import { toast } from "sonner"
 
 export default function AuthPage() {
 
-    const { register, handleSubmit } = useForm<{ email: string, password: string, confirmPassword?: string }>()
+    const { register, handleSubmit, setError, formState: { errors } } = useForm<{ email: string, password: string, confirmPassword?: string }>()
 
     const [isRegister, setIsRegister] = useState(false)
 
@@ -21,6 +21,20 @@ export default function AuthPage() {
     const [isLoading, setIsLoading] = useState(false)
 
     const onSubmit = async (data: { email: string, password: string, confirmPassword?: string }) => {
+        // Vérification du format de l'email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(data.email)) {
+            setError("email", { type: "manual", message: "Format d'email invalide" });
+            toast.error("Format d'email invalide");
+            return;
+        }
+        // Vérification de la correspondance des mots de passe en mode inscription
+        if (isRegister && data.password !== data.confirmPassword) {
+            setError("password", { type: "manual", message: "Les mots de passe ne correspondent pas" });
+            setError("confirmPassword", { type: "manual", message: "Les mots de passe ne correspondent pas" });
+            toast.error("Les mots de passe ne correspondent pas");
+            return;
+        }
         console.log(data)
         try {
             setIsLoading(true)
@@ -56,6 +70,7 @@ export default function AuthPage() {
                             type="email"
                             placeholder="Email"
                             {...register("email")}
+                            className={errors.email ? "border-red-500" : ""}
                         />
                     </div>
                     <div className="space-y-2">
@@ -66,6 +81,7 @@ export default function AuthPage() {
                                 type={showPassword ? "text" : "password"}
                                 placeholder="........"
                                 {...register("password")}
+                                className={errors.password ? "border-red-500" : ""}
                             />
                             <Button
                                 type="button"
@@ -91,6 +107,7 @@ export default function AuthPage() {
                                 type={showPassword ? "text" : "password"}
                                 placeholder="........"
                                 {...register("confirmPassword")}
+                                className={errors.confirmPassword ? "border-red-500" : ""}
                             />
                             <Button
                                 type="button"

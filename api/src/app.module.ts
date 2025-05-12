@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { LoggerModule } from 'nestjs-pino';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UserModule } from './user/user.module';
     }),
     AuthModule,
     UserModule,
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

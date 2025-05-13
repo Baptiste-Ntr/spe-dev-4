@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
+import * as speakeasy from 'speakeasy';
 
 @Injectable()
 export class AuthService {
@@ -25,7 +26,36 @@ export class AuthService {
     }
 
     async login(user: any) {
-        const payload = { email: user.email, sub: user.id };
+        const payload = { email: user.email, sub: user.id, isTwoFactorEnabled: user.isTwoFactorEnabled };
+        if (user.isTwoFactorEnabled) {
+            return {
+                pre_access_token: this.jwtService.sign(payload),
+                twoFactorEnabled: true
+            };
+        }
+        return {
+            access_token: this.jwtService.sign(payload),
+        };
+    }
+
+    async verifyTwoFactorCode(userId: string, code: string) {
+        const user = await this.userService.findUserById(userId);
+        if (!user || !user.twoFactorSecret) {
+            throw new UnauthorizedException('2FA not configured');
+        }
+
+        const verified = speakeasy.totp.verify({
+            secret: user.twoFactorSecret,
+            encoding: 'base32',
+            token: code,
+            window: 1, // tolérance de 30s avant/après
+        });
+
+        if (!verified) {
+            throw new UnauthorizedException('Invalid 2FA code');
+        }
+
+        const payload = { email: user.email, sub: user.id, isTwoFactorEnabled: true };
         return {
             access_token: this.jwtService.sign(payload),
         };

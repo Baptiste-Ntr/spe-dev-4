@@ -11,21 +11,27 @@ export const EditForm = ({ defaultUserEmail, defaultUserFirstName, defaultUserLa
 
     const { register, handleSubmit, setError, formState: { errors } } = useForm<User>()
 
+    console.log(userId)
     const onSubmit = async (data: User) => {
         try {
-            const response = await fetcher(`/api/user/${userId}`, {
+            const response = await fetcher(`/api/user/update/${userId}`, {
                 method: "PATCH",
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                }
             })
             if (response) {
                 toast.success("Utilisateur mis à jour avec succès")
+                window.location.reload()
             }
         } catch (error: any) {
             console.error("Erreur lors de la mise à jour de l'utilisateur:", error)
             if (error.message?.includes("email")) {
-                setError("email", { 
-                    type: "manual", 
-                    message: "Cet email est déjà utilisé par un autre utilisateur" 
+                setError("email", {
+                    type: "manual",
+                    message: "Cet email est déjà utilisé par un autre utilisateur"
                 });
             }
             toast.error(error.message || "Erreur lors de la mise à jour de l'utilisateur")

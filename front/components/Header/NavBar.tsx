@@ -71,9 +71,9 @@ export function Navbar() {
                             <Button variant="ghost" className="flex items-center gap-2">
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
-                                    <AvatarFallback>JD</AvatarFallback>
+                                    <AvatarFallback>{user?.firstName?.charAt(0) || ""}{user?.lastName?.charAt(0) || ""}</AvatarFallback>
                                 </Avatar>
-                                <span className="hidden md:inline-block">John Doe</span>
+                                <span className="hidden md:inline-block">{user?.firstName} {user?.lastName}</span>
                                 <ChevronDown className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>

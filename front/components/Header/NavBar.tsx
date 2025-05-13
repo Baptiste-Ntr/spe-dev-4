@@ -24,6 +24,7 @@ import { EditForm } from "./Profile/editForm"
 import { TwoFactor } from "./2FA/TwoFactor"
 export function Navbar() {
     const router = useRouter()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [notifications, setNotifications] = useState(3)
 
     const handleLogout = async () => {

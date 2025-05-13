@@ -9,7 +9,7 @@ import { toast } from "sonner"
 
 export const EditForm = ({ defaultUserEmail, defaultUserFirstName, defaultUserLastName, userId }: { defaultUserEmail: string, defaultUserFirstName: string, defaultUserLastName: string, userId: string }) => {
 
-    const { register, handleSubmit, setError, formState: { errors } } = useForm<User>()
+    const { register, handleSubmit, setError } = useForm<User>()
 
     console.log(userId)
     const onSubmit = async (data: User) => {
@@ -26,6 +26,7 @@ export const EditForm = ({ defaultUserEmail, defaultUserFirstName, defaultUserLa
                 toast.success("Utilisateur mis à jour avec succès")
                 window.location.reload()
             }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error("Erreur lors de la mise à jour de l'utilisateur:", error)
             if (error.message?.includes("email")) {
@@ -48,7 +49,7 @@ export const EditForm = ({ defaultUserEmail, defaultUserFirstName, defaultUserLa
                 <DialogHeader>
                     <DialogTitle>Edit profile</DialogTitle>
                     <DialogDescription>
-                        Make changes to your profile here. Click save when you're done.
+                        Make changes to your profile here. Click save when you&apos;re done.
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)}>

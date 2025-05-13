@@ -1,45 +1,46 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
-// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { FoldersService } from './folder.service';
 import { CreateFolderDto } from './dto/create-folder.dto';
 import { UpdateFolderDto } from './dto/update-folder.dto';
+import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
+import { ShareFolderDto } from './dto/share-folder.dto';
 
-// @UseGuards(JwtAuthGuard)
 @Controller('folders')
-export class FoldersController {
+@UseGuards(JwtAuthGuard) // Protection de toutes les routes
+export class FolderController {
   constructor(private readonly foldersService: FoldersService) {}
 
+  @Post()
+  create(@Body() createFolderDto: CreateFolderDto, @Req() req) {
+    return this.foldersService.create(createFolderDto, req.user.id);
+  }
+
   @Get()
-  findAll() {
-    return this.foldersService.findAll();
+  findAll(@Req() req) {
+    return this.foldersService.findAll(req.user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.foldersService.findOne(id);
-  }
-
-  @Post()
-  create(@Body() dto: CreateFolderDto) {
-    return this.foldersService.create(dto);
+  findOne(@Param('id') id: string, @Req() req) {
+    return this.foldersService.findOne(id, req.user.id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateFolderDto) {
-    return this.foldersService.update(id, dto);
+  update(@Param('id') id: string, @Body() updateFolderDto: UpdateFolderDto, @Req() req) {
+    return this.foldersService.update(id, updateFolderDto, req.user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.foldersService.remove(id);
+  remove(@Param('id') id: string, @Req() req) {
+    return this.foldersService.remove(id, req.user.id);
+  }
+  
+  @Post(':id/share')
+  shareFolder(
+    @Param('id') id: string, 
+    @Body() shareDto: ShareFolderDto, 
+    @Req() req
+  ) {
+    return this.foldersService.shareFolder(id, shareDto.userId, shareDto.canEdit, req.user.id);
   }
 }

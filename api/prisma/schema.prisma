@@ -43,10 +43,10 @@ model Folder {
   name      String
   parent    Folder?    @relation("FolderHierarchy", fields: [parentId], references: [id])
   parentId  String?
-  children  Folder[]   @relation("FolderHierarchy")
+  children  Folder[]   @relation("FolderHierarchy") 
   documents Document[]
   createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  updatedAt DateTime?   @updatedAt
 }
 
 model Document {
@@ -55,15 +55,15 @@ model Document {
   content     String? // pour les docs textuels
   filePath    String? // pour les fichiers binaires
   mimeType    String? // ex. "application/pdf", "image/png"
-  folder      Folder?  @relation(fields: [folderId], references: [id])
-  folderId    String?
-  updatedAt   DateTime @updatedAt
+  folder      Folder  @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  folderId    String
+  updatedAt   DateTime? @updatedAt
   updatedBy   User?    @relation("LastEditor", fields: [updatedById], references: [id])
   updatedById String?
   createdAt   DateTime @default(now())
 
   // permissions & invitations
-  permissions Permission[]
+  permissions Permission[] @relation("DocumentPermissions")
   invitations Invitation[]
 }
 
@@ -71,7 +71,7 @@ model Permission {
   id         String   @id @default(uuid())
   user       User     @relation(fields: [userId], references: [id])
   userId     String
-  document   Document @relation(fields: [documentId], references: [id])
+  document   Document @relation("DocumentPermissions", fields: [documentId], references: [id], onDelete: Cascade)
   documentId String
   canEdit    Boolean  @default(false)
   createdAt  DateTime @default(now())

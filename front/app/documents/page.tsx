@@ -1,6 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 // Structure des données
 interface Document {
@@ -15,6 +17,7 @@ interface Folder {
 }
 
 export default function DocumentExplorer() {
+  const router = useRouter()
   const [fileToRename, setFileToRename] = useState<Document | null>(null);
   const [renameTitle, setRenameTitle] = useState('');
   const [showRenameFileModal, setShowRenameFileModal] = useState(false);

@@ -22,7 +22,6 @@ import { RenameDocumentDto } from './dto/rename-document.dto';
 export class DocumentsController {
   constructor(private docsService: DocumentsService) { }
 
-  // Nécessite d'être identifié (JWT)
   // @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -30,7 +29,7 @@ export class DocumentsController {
     @Req() req,
     @Body() dto: CreateDocumentDto,
   ) {
-    var userId = 'dev-user-id'; // selon implémentation JWT
+    var userId = 'dev-user-id';
     // Vérifier si req.user existe avant d'essayer d'accéder à ses propriétés
     if (req.user && isSet(req.user.userId)) {
       userId = req.user.userId;
@@ -39,7 +38,7 @@ export class DocumentsController {
     return document;
   }
 
-  @Get()  // Ajouter cette méthode si elle n'existe pas
+  @Get()
   findAll() {
     return this.docsService.findAll();
   }

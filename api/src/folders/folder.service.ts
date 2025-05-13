@@ -10,6 +10,8 @@ export class FoldersService {
 
   async findAll(userId: string) {
     try {
+      console.log(`Fetching folders for user ${userId}`);
+      
       // Récupérer les dossiers que l'utilisateur possède
       const ownedFolders = await this.prisma.folder.findMany({
         where: { ownerId: userId },

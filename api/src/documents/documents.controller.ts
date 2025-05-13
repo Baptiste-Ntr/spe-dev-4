@@ -16,24 +16,21 @@ import { DocumentsService } from './documents.service';
 import { CreateDocumentDto } from './dto/create-documents.dto';
 import { isSet } from 'util/types';
 import { RenameDocumentDto } from './dto/rename-document.dto';
-// import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/jwt.auth.guard';
 
 @Controller('documents')
 export class DocumentsController {
   constructor(private docsService: DocumentsService) { }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Req() req,
     @Body() dto: CreateDocumentDto,
   ) {
-    var userId = 'dev-user-id';
-    // Vérifier si req.user existe avant d'essayer d'accéder à ses propriétés
-    if (req.user && isSet(req.user.userId)) {
-      userId = req.user.userId;
-    }
+    const userId = req.user.userId;
+    
     const document = await this.docsService.create(dto, userId);
     return document;
   }

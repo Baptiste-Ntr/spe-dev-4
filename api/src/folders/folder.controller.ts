@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Logger } from '@nestjs/common';
 import { FoldersService } from './folder.service';
 import { CreateFolderDto } from './dto/create-folder.dto';
 import { UpdateFolderDto } from './dto/update-folder.dto';
@@ -8,31 +8,34 @@ import { ShareFolderDto } from './dto/share-folder.dto';
 @Controller('folders')
 @UseGuards(JwtAuthGuard) // Protection de toutes les routes
 export class FolderController {
+  private readonly logger = new Logger(FolderController.name);
+
   constructor(private readonly foldersService: FoldersService) {}
 
   @Post()
   create(@Body() createFolderDto: CreateFolderDto, @Req() req) {
-    return this.foldersService.create(createFolderDto, req.user.id);
+    return this.foldersService.create(createFolderDto, req.user.userId);
   }
 
   @Get()
   findAll(@Req() req) {
-    return this.foldersService.findAll(req.user.id);
+    this.logger.debug(`Getting all folders for user ${req.user?.userId}`);
+    return this.foldersService.findAll(req.user.userId);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req) {
-    return this.foldersService.findOne(id, req.user.id);
+    return this.foldersService.findOne(id, req.user.userId);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateFolderDto: UpdateFolderDto, @Req() req) {
-    return this.foldersService.update(id, updateFolderDto, req.user.id);
+    return this.foldersService.update(id, updateFolderDto, req.user.userId);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string, @Req() req) {
-    return this.foldersService.remove(id, req.user.id);
+    return this.foldersService.remove(id, req.user.userId);
   }
   
   @Post(':id/share')
@@ -41,6 +44,6 @@ export class FolderController {
     @Body() shareDto: ShareFolderDto, 
     @Req() req
   ) {
-    return this.foldersService.shareFolder(id, shareDto.userId, shareDto.canEdit, req.user.id);
+    return this.foldersService.shareFolder(id, shareDto.userId, shareDto.canEdit, req.user.userId);
   }
 }

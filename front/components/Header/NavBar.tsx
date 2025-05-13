@@ -20,16 +20,21 @@ import { AuthContext } from "@/context/AuthContext"
 import { User as UserType } from "@/types/model"
 import { toast } from "sonner"
 import { fetcher } from "@/lib/fetcher"
-import { EditForm } from "../Profile/editForm"
+import { EditForm } from "./Profile/editForm"
+import { TwoFactor } from "./2FA/TwoFactor"
 export function Navbar() {
     const router = useRouter()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [notifications, setNotifications] = useState(3)
 
     const handleLogout = async () => {
         try {
             const response = await fetcher("/api/auth/logout", {
                 method: "GET",
-                credentials: "include"
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                }
             })
             if (response) {
                 toast.success("Déconnexion réussie")
@@ -90,9 +95,9 @@ export function Navbar() {
                                         defaultUserLastName={user?.lastName || ""}
                                     />
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                     <Settings className="mr-2 h-4 w-4" />
-                                    <span>Two-Factor Authentication</span>
+                                    <TwoFactor />
                                 </DropdownMenuItem>
                                 {/* Admin link - would be conditionally rendered based on user role */}
                                 {user?.role === "ADMIN" && (

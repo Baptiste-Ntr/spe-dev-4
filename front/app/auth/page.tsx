@@ -10,17 +10,14 @@ import { useForm } from "react-hook-form"
 import { fetcher } from "@/lib/fetcher"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { TwoFactorVerification } from "@/components/auth/TwoFactorVerification"
 
 export default function AuthPage() {
-
     const { register, handleSubmit, setError, formState: { errors } } = useForm<{ email: string, password: string, confirmPassword?: string, firstName?: string, lastName?: string }>()
-
     const [isRegister, setIsRegister] = useState(false)
-
     const [showPassword, setShowPassword] = useState(false)
-
     const [isLoading, setIsLoading] = useState(false)
-
+    const [showTwoFactor, setShowTwoFactor] = useState(false)
     const router = useRouter()
 
     const onSubmit = async (data: { email: string, password: string, confirmPassword?: string }) => {
@@ -38,7 +35,7 @@ export default function AuthPage() {
             toast.error("Les mots de passe ne correspondent pas");
             return;
         }
-        // console.log(data)
+
         try {
             setIsLoading(true)
             const res = await fetcher(`/api/auth/${isRegister ? "register" : "login"}`, {
@@ -49,9 +46,14 @@ export default function AuthPage() {
                     "Content-Type": "application/json"
                 }
             })
-            console.log(res)
-            toast.success(`Successfully ${isRegister ? "registered" : "logged in"}`)
-            router.push("/dashboard")
+
+            if (res.twoFactorEnabled) {
+                setShowTwoFactor(true)
+                toast.info("Veuillez entrer votre code 2FA")
+            } else {
+                toast.success(`Successfully ${isRegister ? "registered" : "logged in"}`)
+                router.push("/dashboard")
+            }
         } catch (error) {
             let message = "Something went wrong";
             if (error instanceof Error) {
@@ -62,6 +64,19 @@ export default function AuthPage() {
             setIsLoading(false)
         }
     }
+
+    if (showTwoFactor) {
+        return (
+            <div className="flex flex-col gap-8 items-center justify-center h-screen">
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-4xl font-bold text-center">DocCollab</h1>
+                    <p className="text-sm text-muted-foreground text-center">Collaborate on documents in real time</p>
+                </div>
+                <TwoFactorVerification />
+            </div>
+        )
+    }
+
     return (
         <div className="flex flex-col gap-8 items-center justify-center h-screen">
             <div className="flex flex-col gap-2">

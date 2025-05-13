@@ -4,12 +4,14 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { TwoFactorAuthModule } from './2fa/2fa.module';
 
 @Module({
   imports: [
     AuthModule,
     UserModule,
     PrismaModule,
+    TwoFactorAuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

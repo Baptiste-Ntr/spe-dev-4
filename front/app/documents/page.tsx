@@ -37,7 +37,7 @@ export default function DocumentExplorer() {
   // Récupére les dossiers et fichier
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch('http://127.0.0.1:3000/api/folders');
+      const res = await fetch(`http://localhost:8000/api/folders`);
       const data: Folder[] = await res.json();
       setFolders(data);
       if (data.length) setSelectedFolder(data[0]);
@@ -46,7 +46,7 @@ export default function DocumentExplorer() {
   }, []);
 
   async function fetchData() {
-    const res = await fetch('http://127.0.0.1:3000/api/folders');
+    const res = await fetch(`http://localhost:8000/api/folders`);
     const data: Folder[] = await res.json();
     setFolders(data);
 
@@ -80,7 +80,7 @@ export default function DocumentExplorer() {
       payload.folderId = selectedFolder.id;
     }
 
-    const res = await fetch('http://127.0.0.1:3000/api/documents', {
+    const res = await fetch(`http://localhost:8000/api/documents`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -105,7 +105,7 @@ export default function DocumentExplorer() {
   // Supprime un fichier
   async function handleDeleteFile(id: string) {
     if (!confirm('Voulez-vous vraiment supprimer ce fichier ?')) return;
-    const res = await fetch(`http://127.0.0.1:3000/api/documents/${id}`, {
+    const res = await fetch(`http://localhost:8000/api/documents/${id}`, {
       method: 'DELETE',
     });
     if (res.ok) {
@@ -122,7 +122,7 @@ export default function DocumentExplorer() {
   // Renomme un fichier
   async function handleRenameFile() {
     if (!fileToRename) return;
-    const res = await fetch(`http://127.0.0.1:3000/api/documents/${fileToRename.id}`, {
+    const res = await fetch(`http://localhost:8000/api/documents/${fileToRename.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: renameTitle }),
@@ -145,7 +145,7 @@ export default function DocumentExplorer() {
   // Supprime un dossier
   async function handleDeleteFolder(id: string) {
     if (!confirm('Voulez-vous vraiment supprimer ce dossier ?')) return;
-    const res = await fetch(`http://127.0.0.1:3000/api/folders/${id}`, {
+    const res = await fetch(`http://localhost:8000/api/folders/${id}`, {
       method: 'DELETE',
     });
     if (res.ok) {
@@ -158,7 +158,7 @@ export default function DocumentExplorer() {
   // Renomme un dossier
   async function handleRenameFolder() {
     if (!folderToRename) return;
-    const res = await fetch(`http://127.0.0.1:3000/api/folders/${folderToRename.id}`, {
+    const res = await fetch(`http://localhost:8000/api/folders/${folderToRename.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: renameFolderName }),
@@ -179,7 +179,7 @@ export default function DocumentExplorer() {
   // Créer un dossier
   async function handleCreateFolder() {
     if (!newFolderName) return;
-    const res = await fetch('http://127.0.0.1:3000/api/folders', {
+    const res = await fetch(`http://localhost:8000/api/folders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newFolderName }),
@@ -203,7 +203,7 @@ export default function DocumentExplorer() {
         <aside className="w-64 bg-gray-100 p-4">
           <h2 className="text-xl font-semibold mb-4">Mes Dossiers</h2>
           <ul>
-            {folders.map((folder, index) => (
+            {Array.isArray(folders) && folders.map((folder, index) => (
               <li
                 key={folder.id}
                 className={`p-2 rounded cursor-pointer mb-2 ${selectedFolder?.id === folder.id ? 'bg-blue-200' : 'hover:bg-gray-200'}`}
@@ -211,7 +211,7 @@ export default function DocumentExplorer() {
               >
                 <div
                   className={`flex-grow ${selectedFolder?.id === folder.id ? 'font-bold text-blue-700' : ''}`}
-                  
+
                 >
                   {folder.name}
                 </div>

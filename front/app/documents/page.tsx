@@ -272,7 +272,9 @@ export default function DocumentExplorer() {
             <ul className="space-y-2">
               {selectedFolder.documents.map((doc) => (
                 <li key={doc.id} className="flex justify-between items-center p-3 border rounded hover:bg-gray-50">
-                  <span>{doc.title}</span>
+                  <Link href={`/documents/${doc.id}`} className="flex-grow hover:text-blue-600">
+                    {doc.title}
+                  </Link>
                   <div className="space-x-2">
                     <button
                       onClick={() => {

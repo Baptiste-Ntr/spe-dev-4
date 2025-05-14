@@ -48,6 +48,19 @@ export class DocumentsService {
         });
     }
 
+    async findById(id: string) {
+        const document = await this.prisma.document.findUnique({
+            where: { id },
+            include: {
+                folder: { select: { id: true, name: true } },
+            },
+        });
+        if (!document) {
+            throw new NotFoundException('Document non trouvé');
+        }
+        return document;
+    }
+
     async rename(id: string, newTitle: string) {
         return this.prisma.document.update({
             where: { id },

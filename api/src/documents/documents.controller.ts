@@ -30,7 +30,7 @@ export class DocumentsController {
     @Body() dto: CreateDocumentDto,
   ) {
     const userId = req.user.userId;
-    
+
     const document = await this.docsService.create(dto, userId);
     return document;
   }
@@ -38,6 +38,11 @@ export class DocumentsController {
   @Get()
   findAll() {
     return this.docsService.findAll();
+  }
+
+  @Get(':id')
+  findById(@Param('id') id: string) {
+    return this.docsService.findById(id);
   }
 
   @Patch(':id')

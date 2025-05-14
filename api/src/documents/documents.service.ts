@@ -16,6 +16,7 @@ export class DocumentsService {
                 title: dto.title,
                 content: '',
                 createdAt: new Date(),
+                type: dto.type,
                 folder: {
                     connect: {
                         id: folderId,

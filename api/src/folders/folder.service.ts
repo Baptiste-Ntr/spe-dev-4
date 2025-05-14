@@ -17,7 +17,7 @@ export class FoldersService {
         where: { ownerId: userId },
         include: {
           documents: {
-            select: { id: true, title: true, updatedBy: true, createdAt: true, updatedAt: true },
+            select: { id: true, title: true, updatedBy: true, createdAt: true, updatedAt: true, type: true },
           },
           children: {
             select: { id: true, name: true },

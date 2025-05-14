@@ -1,38 +1,48 @@
 // hooks/useSocket.js
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const useSocket = () => {
+  const [socket, setSocket] = useState(null);
+
   useEffect(() => {
-    const socket = io('http://localhost:3001'); // Assurez-vous que l'URL est correcte
+    const newSocket = io('http://localhost:3001', {
+      withCredentials: true, // Assurez-vous que les credentials sont inclus
+      transports: ['websocket'], // Utilisez uniquement le transport WebSocket
+    });
+
+    setSocket(newSocket);
 
     // Écouter l'événement de connexion
-    socket.on('connect', () => {
-      console.log('Connected to server', socket.id);
+    newSocket.on('connect', () => {
+      console.log('Connected to server', newSocket.id);
     });
 
     // Écouter l'événement de déconnexion
-    socket.on('disconnect', () => {
+    newSocket.on('disconnect', () => {
       console.log('Disconnected from server');
     });
 
     // Écouter les événements personnalisés
-    socket.on('user connected', (message) => {
+    newSocket.on('user connected', (message) => {
       console.log(message);
     });
 
-    socket.on('user disconnected', (message) => {
+    newSocket.on('user disconnected', (message) => {
       console.log(message);
     });
 
     // Nettoyer les écouteurs d'événements lors du démontage du composant
     return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('user connected');
-      socket.off('user disconnected');
+      newSocket.off('connect');
+      newSocket.off('disconnect');
+      newSocket.off('user connected');
+      newSocket.off('user disconnected');
+      newSocket.disconnect();
     };
   }, []);
+
+  return socket;
 };
 
 export default useSocket; // Exportez le hook

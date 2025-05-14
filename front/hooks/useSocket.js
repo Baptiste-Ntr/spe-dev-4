@@ -6,9 +6,9 @@ const useSocket = () => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    const newSocket = io('http://localhost:3001', {
-      withCredentials: true, // Assurez-vous que les credentials sont inclus
-      transports: ['websocket'], // Utilisez uniquement le transport WebSocket
+    const newSocket = io('http://localhost:8000', {
+      withCredentials: true,
+      transports: ['websocket'],
     });
 
     setSocket(newSocket);
@@ -32,12 +32,24 @@ const useSocket = () => {
       console.log(message);
     });
 
+    // Écouter l'événement de création de dossier
+    newSocket.on('folderCreated', (folderData) => {
+      console.log(`Folder created: ${folderData.name}`);
+    });
+
+    // // Écouter l'événement de création de fichier
+    // newSocket.on('fileCreated', (fileData) => {
+    //   console.log(`File created: ${fileData.name}`);
+    // });
+
     // Nettoyer les écouteurs d'événements lors du démontage du composant
     return () => {
       newSocket.off('connect');
       newSocket.off('disconnect');
       newSocket.off('user connected');
       newSocket.off('user disconnected');
+      newSocket.off('folderCreated');
+      newSocket.off('fileCreated');
       newSocket.disconnect();
     };
   }, []);

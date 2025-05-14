@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import useSocket from '../../hooks/useSocket';
 
 // Structure des données
 interface Document {
@@ -17,7 +18,8 @@ interface Folder {
 }
 
 export default function DocumentExplorer() {
-  const router = useRouter()
+  const router = useRouter();
+  const socket = useSocket();
   const [fileToRename, setFileToRename] = useState<Document | null>(null);
   const [renameTitle, setRenameTitle] = useState('');
   const [showRenameFileModal, setShowRenameFileModal] = useState(false);
@@ -33,6 +35,28 @@ export default function DocumentExplorer() {
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+
+  // Écouter les événements WebSocket
+  useEffect(() => {
+    if (socket) {
+      socket.on('folderCreated', (folderData) => {
+        console.log(`Folder created: ${folderData.name}`);
+        // Mettre à jour l'état local pour refléter le nouveau dossier
+        setFolders(prevFolders => [...prevFolders, folderData]);
+      });
+
+      // socket.on('fileCreated', (fileData) => {
+      //   console.log(`File created: ${fileData.title}`);
+      //   // Mettre à jour l'état local pour refléter le nouveau fichier
+      //   if (selectedFolder) {
+      //     setSelectedFolder(prev => ({
+      //       ...prev,
+      //       documents: [...prev.documents, fileData]
+      //     }));
+      //   }
+      // });
+    }
+  }, [socket, selectedFolder]);
 
   // Récupére les dossiers et fichier
   useEffect(() => {

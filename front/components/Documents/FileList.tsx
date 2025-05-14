@@ -7,13 +7,15 @@ interface FileListProps {
   onCreateFile: () => void;
   onRenameFile: (file: Document) => void;
   onDeleteFile: (id: string) => void;
+  onUploadFile: () => void;
 }
 
 export default function FileList({
   files,
   onCreateFile,
   onRenameFile,
-  onDeleteFile
+  onDeleteFile,
+  onUploadFile,
 }: FileListProps) {
   return (
     <div>
@@ -23,6 +25,13 @@ export default function FileList({
       >
         + Nouveau Fichier
       </button>
+
+      <button
+            onClick={onUploadFile}
+            className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            📤 Télécharger un fichier
+        </button>
       
       <ul className="space-y-2">
         {files.map((doc) => (

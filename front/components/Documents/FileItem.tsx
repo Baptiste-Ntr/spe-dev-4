@@ -3,16 +3,42 @@ import { Document } from '@/types/model';
 import { formatDate } from '@/utils/formatter';
 
 interface FileItemProps {
-  document: Document;
-  onRename: (doc: Document) => void;
-  onDelete: (id: string) => void;
+    document: Document;
+    onRename: (doc: Document) => void;
+    onDelete: (id: string) => void;
 }
 
 export default function FileItem({ document, onRename, onDelete }: FileItemProps) {
-  return (
+    const getFileIcon = () => {
+        if (!document.type) return '📄'; // Document standard
+
+        if (document.type.includes('PDF')) return '📕';
+        if (document.type.includes('IMAGE')) return '🖼️';
+        if (document.type.includes('TEXT')) return '📝';
+        console.log("dedede", document.type);
+        
+        
+        return '📄'; // Document standard par défaut
+    };
+    
+    return (
     <li className="flex justify-between items-start p-3 border rounded hover:bg-gray-50">
-      {/* Titre du document à gauche */}
-      <div className="font-medium">{document.title}</div>
+      <div className="flex items-center">
+        <span className="text-2xl mr-3">{getFileIcon()}</span>
+        <div>
+          <div className="font-medium">{document.title}</div>
+          {/* {document.filePath && (
+            <a 
+              href={getFileUrl() || '#'} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:underline"
+            >
+              Télécharger
+            </a>
+          )} */}
+        </div>
+      </div>
 
       {/* Infos et actions à droite */}
       <div className="flex flex-col items-end">

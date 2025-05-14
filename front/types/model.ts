@@ -38,6 +38,7 @@ export interface Document {
   };
   createdAt?: string;
   updatedAt?: string;
+  type: 'TEXT' | 'PDF' | 'IMAGE';
 }
 
 export interface Permission {

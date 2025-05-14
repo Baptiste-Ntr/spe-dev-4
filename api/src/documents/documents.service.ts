@@ -3,6 +3,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDocumentDto } from './dto/create-documents.dto';
 import { ConfigService } from '@nestjs/config';
+import { UpdateDocumentDto } from './dto/update-document.dto';
 
 @Injectable()
 export class DocumentsService {
@@ -65,6 +66,19 @@ export class DocumentsService {
         return this.prisma.document.update({
             where: { id },
             data: { title: newTitle, updatedAt: new Date() },
+        });
+    }
+
+    async update(id: string, dto: UpdateDocumentDto) {
+        return this.prisma.document.update({
+            where: { id },
+            data: {
+                title: dto.title,
+                content: dto.content,
+                folderId: dto.folderId,
+                updatedAt: dto.updatedAt,
+                updatedById: dto.updatedById,
+            },
         });
     }
 

@@ -17,6 +17,7 @@ import { CreateDocumentDto } from './dto/create-documents.dto';
 import { isSet } from 'util/types';
 import { RenameDocumentDto } from './dto/rename-document.dto';
 import { JwtAuthGuard } from '../auth/jwt.auth.guard';
+import { UpdateDocumentDto } from './dto/update-document.dto';
 
 @Controller('documents')
 export class DocumentsController {
@@ -43,6 +44,14 @@ export class DocumentsController {
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.docsService.findById(id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateDocumentDto,
+  ) {
+    return this.docsService.update(id, dto);
   }
 
   @Patch(':id')

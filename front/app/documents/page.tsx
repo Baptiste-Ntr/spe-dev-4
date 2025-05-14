@@ -46,7 +46,9 @@ export default function DocumentExplorer() {
   }, []);
 
   async function fetchData() {
-    const res = await fetch(`http://localhost:8000/api/folders`);
+    const res = await fetch(`http://localhost:8000/api/folders`, {
+      credentials: 'include'
+    });
     const data: Folder[] = await res.json();
     setFolders(data);
 
@@ -162,7 +164,7 @@ export default function DocumentExplorer() {
   // Renomme un dossier
   async function handleRenameFolder() {
     if (!folderToRename) return;
-    const res = await fetch(`http://127.0.0.1:3000/api/folders/${folderToRename.id}`, {
+    const res = await fetch(`http://localhost:8000/api/folders/${folderToRename.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: renameFolderName }),
@@ -265,7 +267,7 @@ export default function DocumentExplorer() {
 
         {/* Main Content */}
         <main className="flex-1 p-6 overflow-auto">
-          <h1 className="text-2xl font-bold mb-4">Fichiers dans "{selectedFolder?.name || 'Aucun dossier'}"</h1>
+          <h1 className="text-2xl font-bold mb-4">Fichiers dans &quot;{selectedFolder?.name || 'Aucun dossier'}</h1>
           {selectedFolder && (
             <ul className="space-y-2">
               {selectedFolder.documents.map((doc) => (

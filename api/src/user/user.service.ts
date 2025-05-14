@@ -3,6 +3,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { hash } from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -38,8 +39,14 @@ export class UserService {
                 invitationsSent: data.invitationsSent ? { create: data.invitationsSent } : undefined,
                 invitationsReceived: data.invitationsReceived ? { create: data.invitationsReceived } : undefined,
                 documentsUpdated: data.documentsUpdated ? { create: data.documentsUpdated } : undefined,
+                // Création du dossier Home 
+                ownedFolders: {
+                    create: {
+                        name: 'Home'
+                    }
+                }
             }
-        })
+        });
 
         return user;
     }

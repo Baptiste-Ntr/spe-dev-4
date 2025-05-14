@@ -19,59 +19,88 @@ enum Role {
 }
 
 model User {
-  id                 String    @id @default(uuid())
-  email              String    @unique
+  id                 String        @id @default(uuid())
+  email              String        @unique
   passwordHash       String
   firstName          String?
   lastName           String?
-  role               Role      @default(USER)
-  isTwoFactorEnabled Boolean   @default(false)
+  role               Role          @default(USER)
+  isTwoFactorEnabled Boolean       @default(false)
   twoFactorSecret    String?
   blockedAt          DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  ownedFolders       Folder[]      @relation("FolderOwner") // Dossiers dont l'utilisateur est propriétaire
+  sharedFolders      FolderShare[] @relation("SharedFolders") // Dossiers partagés avec l'utilisateur
 
   // relations
   permissions         Permission[]
-  invitationsSent     Invitation[] @relation("InvitedBy")
-  invitationsReceived Invitation[] @relation("InvitedTo")
-  documentsUpdated    Document[]   @relation("LastEditor")
+  invitationsSent     Invitation[]   @relation("InvitedBy")
+  invitationsReceived Invitation[]   @relation("InvitedTo")
+  documentsUpdated    Document[]     @relation("LastEditor")
+  Collaborator        Collaborator[]
 }
 
 model Folder {
-  id        String     @id @default(uuid())
-  name      String
-  parent    Folder?    @relation("FolderHierarchy", fields: [parentId], references: [id])
-  parentId  String?
-  children  Folder[]   @relation("FolderHierarchy")
-  documents Document[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id         String        @id @default(uuid())
+  name       String
+  owner      User          @relation("FolderOwner", fields: [ownerId], references: [id])
+  ownerId    String
+  parent     Folder?       @relation("FolderHierarchy", fields: [parentId], references: [id])
+  parentId   String?
+  children   Folder[]      @relation("FolderHierarchy")
+  documents  Document[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime?     @updatedAt
+  sharedWith FolderShare[] // Relation pour le partage
+}
+
+// Nouveau modèle pour gérer les partages de dossiers
+model FolderShare {
+  id        String   @id @default(uuid())
+  folder    Folder   @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  folderId  String
+  user      User     @relation("SharedFolders", fields: [userId], references: [id])
+  userId    String
+  canEdit   Boolean  @default(false) // Droits en lecture seule par défaut
+  createdAt DateTime @default(now())
+
+  @@unique([folderId, userId]) // Un utilisateur ne peut recevoir qu'un seul partage pour un dossier donné
 }
 
 model Document {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   content     String? // pour les docs textuels
   filePath    String? // pour les fichiers binaires
   mimeType    String? // ex. "application/pdf", "image/png"
-  folder      Folder?  @relation(fields: [folderId], references: [id])
-  folderId    String?
-  updatedAt   DateTime @updatedAt
-  updatedBy   User?    @relation("LastEditor", fields: [updatedById], references: [id])
+  folder      Folder    @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  folderId    String
+  updatedAt   DateTime? @updatedAt
+  updatedBy   User?     @relation("LastEditor", fields: [updatedById], references: [id])
   updatedById String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
   // permissions & invitations
-  permissions Permission[]
-  invitations Invitation[]
+  permissions  Permission[]   @relation("DocumentPermissions")
+  invitations  Invitation[]
+  Collaborator Collaborator[]
+}
+
+model Collaborator {
+  id         String   @id @default(uuid())
+  document   Document @relation(fields: [documentId], references: [id])
+  documentId String
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  active     Boolean
 }
 
 model Permission {
   id         String   @id @default(uuid())
   user       User     @relation(fields: [userId], references: [id])
   userId     String
-  document   Document @relation(fields: [documentId], references: [id])
+  document   Document @relation("DocumentPermissions", fields: [documentId], references: [id], onDelete: Cascade)
   documentId String
   canEdit    Boolean  @default(false)
   createdAt  DateTime @default(now())

@@ -37,10 +37,7 @@ export default function DocumentExplorer() {
   // Récupére les dossiers et fichier
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch('http://localhost:8000/api/folders', {
-        
-      credentials: 'include'  // Ajouter cette ligne
-    });
+      const res = await fetch(`http://localhost:8000/api/folders`);
       const data: Folder[] = await res.json();
       setFolders(data);
       if (data.length) setSelectedFolder(data[0]);
@@ -49,9 +46,7 @@ export default function DocumentExplorer() {
   }, []);
 
   async function fetchData() {
-    const res = await fetch('http://localhost:8000/api/folders', {
-      credentials: 'include'  // Ajouter cette ligne
-    });
+    const res = await fetch(`http://localhost:8000/api/folders`);
     const data: Folder[] = await res.json();
     setFolders(data);
 
@@ -85,7 +80,7 @@ export default function DocumentExplorer() {
       payload.folderId = selectedFolder.id;
     }
 
-    const res = await fetch('http://localhost:8000/api/documents', {
+    const res = await fetch(`http://localhost:8000/api/documents`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -168,6 +163,7 @@ export default function DocumentExplorer() {
   async function handleRenameFolder() {
     if (!folderToRename) return;
     const res = await fetch(`http://localhost:8000/api/folders/${folderToRename.id}`, {
+    const res = await fetch(`http://localhost:8000/api/folders/${folderToRename.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: renameFolderName }),
@@ -189,7 +185,7 @@ export default function DocumentExplorer() {
   // Créer un dossier
   async function handleCreateFolder() {
     if (!newFolderName) return;
-    const res = await fetch('http://localhost:8000/api/folders', {
+    const res = await fetch(`http://localhost:8000/api/folders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newFolderName }),
@@ -214,7 +210,7 @@ export default function DocumentExplorer() {
         <aside className="w-64 bg-gray-100 p-4">
           <h2 className="text-xl font-semibold mb-4">Mes Dossiers</h2>
           <ul>
-            {folders.map((folder, index) => (
+            {Array.isArray(folders) && folders.map((folder, index) => (
               <li
                 key={folder.id}
                 className={`p-2 rounded cursor-pointer mb-2 ${selectedFolder?.id === folder.id ? 'bg-blue-200' : 'hover:bg-gray-200'}`}

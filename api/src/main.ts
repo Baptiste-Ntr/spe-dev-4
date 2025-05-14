@@ -13,7 +13,6 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.FRONT_URL || ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true,
-    methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'], // Ajouter Cookie
     exposedHeaders: ['Set-Cookie'] // Important pour les coo,
   });

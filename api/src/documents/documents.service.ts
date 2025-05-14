@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 export class DocumentsService {
     constructor(private prisma: PrismaService, private readonly config: ConfigService,) { }
 
-    async create(dto: CreateDocumentDto, userId: string = 'dev-user-id') {
+    async create(dto: CreateDocumentDto, userId: string) {
         const folderId = dto.folderId ?? this.config.get<string>('ROOT_FOLDER_ID') ?? 'default-folder';
 
         const doc = await this.prisma.document.create({
@@ -19,6 +19,11 @@ export class DocumentsService {
                 folder: {
                     connect: {
                         id: folderId,
+                    },
+                },
+                updatedBy:  {
+                    connect: {
+                        id: userId,
                     },
                 },
             },
@@ -42,7 +47,7 @@ export class DocumentsService {
     async findAll() {
         return this.prisma.document.findMany({
             include: {
-                folder: { select: { id: true, name: true } },
+                folder: { select: { id: true, name: true} },
             },
             orderBy: { title: 'asc' },
         });

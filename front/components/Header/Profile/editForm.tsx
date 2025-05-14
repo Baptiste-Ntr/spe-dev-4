@@ -14,6 +14,7 @@ export const EditForm = ({ defaultUserEmail, defaultUserFirstName, defaultUserLa
     console.log(userId)
     const onSubmit = async (data: User) => {
         try {
+            console.log("data", data)
             const response = await fetcher(`/api/user/update/${userId}`, {
                 method: "PATCH",
                 body: JSON.stringify(data),

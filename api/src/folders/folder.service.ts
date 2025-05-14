@@ -78,24 +78,24 @@ export class FoldersService {
   }
 
   async create(dto: CreateFolderDto, userId: string) {
-  // Vérifier si le parent existe et si l'utilisateur y a accès
-  if (dto.parentId) {
-    await this.checkFolderAccess(dto.parentId, userId);
-  }
-
-  // Utiliser la syntaxe explicite des types Prisma pour éviter les erreurs
-  const data: Prisma.FolderCreateInput = {
-    name: dto.name,
-    parent: dto.parentId ? {
-      connect: { id: dto.parentId }
-    } : undefined,
-    owner: {
-      connect: { id: userId }
+    // Vérifier si le parent existe et si l'utilisateur y a accès
+    if (dto.parentId) {
+      await this.checkFolderAccess(dto.parentId, userId);
     }
-  };
 
-  return this.prisma.folder.create({ data });
-}
+    // Utiliser la syntaxe explicite des types Prisma pour éviter les erreurs
+    const data: Prisma.FolderCreateInput = {
+      name: dto.name,
+      parent: dto.parentId ? {
+        connect: { id: dto.parentId }
+      } : undefined,
+      owner: {
+        connect: { id: userId }
+      }
+    };
+
+    return this.prisma.folder.create({ data });
+  }
 
   async update(id: string, dto: UpdateFolderDto, userId: string) {
     // Vérifier si l'utilisateur est le propriétaire

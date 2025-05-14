@@ -1,28 +1,33 @@
-// hooks/useSocket.js
-import { useEffect } from 'react';
-import { io } from 'socket.io-client';
+import React, { useEffect, useState } from 'react';
+import io from 'socket.io-client';
 
-const useSocket = () => {
+const socket = io('http://localhost:3000'); // Assurez-vous que l'URL est correcte
+
+const Home = () => {
+  const [status, setStatus] = useState('Disconnected');
+
   useEffect(() => {
-    const socket = io('http://localhost:3001'); // Assurez-vous que l'URL est correcte
-
     // Écouter l'événement de connexion
     socket.on('connect', () => {
-      console.log('Connected to server', socket.id);
+      console.log('Connected to server');
+      setStatus('Connected');
     });
 
     // Écouter l'événement de déconnexion
     socket.on('disconnect', () => {
       console.log('Disconnected from server');
+      setStatus('Disconnected');
     });
 
     // Écouter les événements personnalisés
     socket.on('user connected', (message) => {
       console.log(message);
+      // Mettre à jour l'interface utilisateur pour afficher le message
     });
 
     socket.on('user disconnected', (message) => {
       console.log(message);
+      // Mettre à jour l'interface utilisateur pour afficher le message
     });
 
     // Nettoyer les écouteurs d'événements lors du démontage du composant
@@ -33,6 +38,13 @@ const useSocket = () => {
       socket.off('user disconnected');
     };
   }, []);
+
+  return (
+    <div>
+      <h1>Socket.IO Example</h1>
+      <p>Status: {status}</p>
+    </div>
+  );
 };
 
-export default useSocket; // Exportez le hook
+export default Home;

@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { TwoFactorAuthModule } from './2fa/2fa.module';
+import { SocketModule } from './gateways/socket.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { TwoFactorAuthModule } from './2fa/2fa.module';
     UserModule,
     PrismaModule,
     TwoFactorAuthModule,
+    SocketModule,
   ],
   controllers: [AppController],
   providers: [AppService],

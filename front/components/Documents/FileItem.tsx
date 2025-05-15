@@ -7,9 +7,10 @@ interface FileItemProps {
   document: Document;
   onRename: (doc: Document) => void;
   onDelete: (id: string) => void;
+  isShared?: boolean;
 }
 
-export default function FileItem({ document, onRename, onDelete }: FileItemProps) {
+export const FileItem = ({ document, onRename, onDelete }: FileItemProps) => {
   const getFileIcon = () => {
     if (!document.type) return '📄'; // Document standard
 

@@ -1,39 +1,41 @@
+'use client'
+
 import { Loader2 } from "lucide-react"
 import { ArrowLeft, CheckCircle2, Users } from "lucide-react"
-import Link from "next/link"
 import { Button } from "../ui/button"
 import { Save, Share, Clock } from "lucide-react"
 import { Input } from "../ui/input"
-import { useState, useEffect, useRef, useContext } from "react"
+import { useState, useEffect, useContext } from "react"
 import { useRouter } from "next/navigation"
-import { Document } from "@/app/documents/[id]/page"
-import { fetcher } from "@/lib/fetcher"
-import { toast } from "sonner"
+import { fetcher } from "@/services/api"
 import { AuthContext } from "@/context/AuthContext"
-import { User as UserType } from "@/types/model"
+import { Document, User as UserType } from "@/types/model"
 
 export const NavBar = ({
     document,
     title,
     setTitle,
     onSave,
-    saveStatus
+    saveStatus,
+    showCollaborators,
+    setShowCollaborators
 }: {
     document: Document,
     title: string,
     setTitle: (title: string) => void,
     onSave: () => Promise<void>,
-    saveStatus: "saved" | "saving" | "unsaved"
+    saveStatus: "saved" | "saving" | "unsaved",
+    showCollaborators: boolean,
+    setShowCollaborators: (show: boolean) => void
 }) => {
     const router = useRouter()
-    const [showCollaborators, setShowCollaborators] = useState(true)
     const [editedBy, setEditedBy] = useState<UserType | null>(null)
 
     const { user } = useContext(AuthContext) as { user: UserType }
 
     useEffect(() => {
         const getEditedBy = async () => {
-            const res = await fetcher(`/api/user/${user?.id}`, {
+            const res = await fetcher(`/user/${user?.id}`, {
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
@@ -52,7 +54,7 @@ export const NavBar = ({
             <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")} className="h-8 w-8">
                     <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Back to dashboard</span>
+                    <span className="sr-only">Retour au tableau de bord</span>
                 </Button>
                 <div className="flex-1">
                     <Input

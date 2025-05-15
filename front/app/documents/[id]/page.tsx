@@ -6,17 +6,10 @@ import { Content } from '@/components/Documents/Content'
 import { fetcher } from '@/lib/fetcher'
 import { toast } from 'sonner'
 import { AuthContext } from '@/context/AuthContext'
-import { User as UserType } from '@/types/model'
+import { Document, User as UserType } from '@/types/model'
 import { useParams } from 'next/navigation'
 import { socketService } from '@/lib/socket'
-
-export interface Document {
-    id: string
-    title: string
-    content: string
-    updatedAt: string
-    updatedById: string
-}
+import { SideBar } from '@/components/Documents/SideBar'
 
 export default function DocumentPage() {
     const params = useParams()
@@ -24,6 +17,7 @@ export default function DocumentPage() {
     const [title, setTitle] = useState('')
     const [content, setContent] = useState('')
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved")
+    const [showCollaborators, setShowCollaborators] = useState(true)
     const { user } = useContext(AuthContext) as { user: UserType | null }
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const contentRef = useRef(content)
@@ -44,7 +38,6 @@ export default function DocumentPage() {
                 setContent(res.content)
                 contentRef.current = res.content
 
-                // Rejoindre le document pour la collaboration
                 if (typeof params.id === 'string') {
                     socketService.joinDocument(params.id)
                 }
@@ -52,7 +45,6 @@ export default function DocumentPage() {
         }
         fetchDocument()
 
-        // Nettoyer la connexion WebSocket lors du démontage
         return () => {
             if (params?.id && typeof params.id === 'string') {
                 socketService.leaveDocument(params.id)
@@ -123,23 +115,28 @@ export default function DocumentPage() {
     }
 
     return (
-        <div>
-            <NavBar
-                document={document}
-                title={title}
-                setTitle={setTitle}
-                onSave={handleSave}
-                saveStatus={saveStatus}
-            />
-            <Content
-                content={content}
-                setContent={(newContent) => {
-                    setContent(newContent)
-                    contentRef.current = newContent
-                    debouncedSave()
-                }}
-                onSave={debouncedSave}
-            />
+        <div className="flex h-screen">
+            <div className="flex-1 flex flex-col">
+                <NavBar
+                    document={document}
+                    title={title}
+                    setTitle={setTitle}
+                    onSave={handleSave}
+                    saveStatus={saveStatus}
+                    showCollaborators={showCollaborators}
+                    setShowCollaborators={setShowCollaborators}
+                />
+                <Content
+                    content={content}
+                    setContent={(newContent) => {
+                        setContent(newContent)
+                        contentRef.current = newContent
+                        debouncedSave()
+                    }}
+                    onSave={debouncedSave}
+                />
+            </div>
+            {showCollaborators && <SideBar showCollaborators={showCollaborators} document={document} />}
         </div>
     )
 } 

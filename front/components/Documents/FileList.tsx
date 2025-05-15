@@ -1,6 +1,6 @@
 import React from 'react';
 import { Document } from '@/types/model';
-import FileItem from './FileItem';
+import { FileItem } from './FileItem';
 
 interface FileListProps {
   files: Document[];
@@ -27,16 +27,16 @@ export default function FileList({
       </button>
 
       <button
-            onClick={onUploadFile}
-            className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            📤 Télécharger un fichier
-        </button>
-      
+        onClick={onUploadFile}
+        className="py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        📤 Télécharger un fichier
+      </button>
+
       <ul className="space-y-2">
         {files.map((doc) => (
-          <FileItem 
-            key={doc.id} 
+          <FileItem
+            key={doc.id}
             document={doc}
             onRename={onRenameFile}
             onDelete={onDeleteFile}

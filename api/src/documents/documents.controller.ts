@@ -55,6 +55,12 @@ export class DocumentsController {
     return this.docsService.findAll();
   }
 
+  @Get('shared')
+  async findSharedDocuments(@Req() req) {
+    const userId = req.user.userId;
+    return this.docsService.findSharedDocuments(userId);
+  }
+
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.docsService.findById(id);
@@ -150,6 +156,11 @@ export class DocumentsController {
     });
     this.logger.debug(`Document créé avec succès: ${doc.id}`);
     return doc;
+  }
+
+  @Get(':id/collaborators')
+  async getDocumentCollaborators(@Param('id') id: string) {
+    return this.docsService.getDocumentCollaborators(id);
   }
 
 }

@@ -24,20 +24,29 @@ enum DocumentType {
   IMAGE
 }
 
+enum NotificationType {
+  INVITATION
+  DOCUMENT_UPDATE
+  COLLABORATOR_JOIN
+  COLLABORATOR_LEAVE
+}
+
 model User {
-  id                 String        @id @default(uuid())
-  email              String        @unique
+  id                 String         @id @default(uuid())
+  email              String         @unique
   passwordHash       String
   firstName          String?
   lastName           String?
-  role               Role          @default(USER)
-  isTwoFactorEnabled Boolean       @default(false)
+  role               Role           @default(USER)
+  isTwoFactorEnabled Boolean        @default(false)
   twoFactorSecret    String?
   blockedAt          DateTime?
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
-  ownedFolders       Folder[]      @relation("FolderOwner") // Dossiers dont l'utilisateur est propriétaire
-  sharedFolders      FolderShare[] @relation("SharedFolders") // Dossiers partagés avec l'utilisateur
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  ownedFolders       Folder[]       @relation("FolderOwner") // Dossiers dont l'utilisateur est propriétaire
+  sharedFolders      FolderShare[]  @relation("SharedFolders") // Dossiers partagés avec l'utilisateur
+  notifications      Notification[]
+  sentNotifications  Notification[] @relation("NotificationSender")
 
   // relations
   permissions         Permission[]
@@ -75,18 +84,19 @@ model FolderShare {
 }
 
 model Document {
-  id          String    @id @default(uuid())
-  title       String
-  content     String? // pour les docs textuels
-  filePath    String? // pour les fichiers binaires
-  mimeType    String? // ex. "application/pdf", "image/png"
-  folder      Folder    @relation(fields: [folderId], references: [id], onDelete: Cascade)
-  folderId    String
-  updatedAt   DateTime? @updatedAt
-  updatedBy   User?     @relation("LastEditor", fields: [updatedById], references: [id])
-  updatedById String?
-  createdAt   DateTime  @default(now())
-  type        DocumentType @default(TEXT)
+  id            String         @id @default(uuid())
+  title         String
+  content       String? // pour les docs textuels
+  filePath      String? // pour les fichiers binaires
+  mimeType      String? // ex. "application/pdf", "image/png"
+  folder        Folder         @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  folderId      String
+  updatedAt     DateTime?      @updatedAt
+  updatedBy     User?          @relation("LastEditor", fields: [updatedById], references: [id])
+  updatedById   String?
+  createdAt     DateTime       @default(now())
+  type          DocumentType   @default(TEXT)
+  notifications Notification[]
 
   // permissions & invitations
   permissions  Permission[]   @relation("DocumentPermissions")
@@ -133,4 +143,26 @@ model Invitation {
   token       String           @unique
   expiresAt   DateTime
   createdAt   DateTime         @default(now())
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  token     String? // Token d'invitation pour les notifications de type INVITATION
+
+  // Relations
+  user       User      @relation(fields: [userId], references: [id])
+  userId     String
+  document   Document? @relation(fields: [documentId], references: [id])
+  documentId String?
+  sender     User      @relation("NotificationSender", fields: [senderId], references: [id])
+  senderId   String
+
+  @@index([userId])
+  @@index([documentId])
+  @@index([senderId])
 }

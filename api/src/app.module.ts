@@ -9,6 +9,8 @@ import { PrismaModule } from './prisma/prisma.module';
 import { DocumentsModule } from './documents/documents.module';
 import { FoldersModule } from './folders/folder.modules';
 import { FolderController } from './folders/folder.controller';
+import { InvitationModule } from './invitation/invitation.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { FolderController } from './folders/folder.controller';
     PrismaModule,
     DocumentsModule,
     FoldersModule,
+    InvitationModule,
+    NotificationsModule,
   ],
   controllers: [AppController, FolderController],
   providers: [AppService],

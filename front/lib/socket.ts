@@ -29,7 +29,7 @@ class SocketService {
     connect() {
         if (this.socket?.connected) return;
 
-        this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001', {
+        this.socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000', {
             withCredentials: true,
         });
 

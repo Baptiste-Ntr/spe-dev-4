@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef } from 'react';
 import { socketService } from '@/lib/socket';
 import { CollaboratorCursors } from './CollaboratorCursors';

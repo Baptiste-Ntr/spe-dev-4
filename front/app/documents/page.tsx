@@ -19,7 +19,7 @@ interface Folder {
 
 export default function DocumentExplorer() {
   const router = useRouter();
-  const socket = useSocket();
+  const { socket, createFolder } = useSocket();
   const [fileToRename, setFileToRename] = useState<Document | null>(null);
   const [renameTitle, setRenameTitle] = useState('');
   const [showRenameFileModal, setShowRenameFileModal] = useState(false);
@@ -35,28 +35,6 @@ export default function DocumentExplorer() {
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
-
-  // Écouter les événements WebSocket
-  useEffect(() => {
-    if (socket) {
-      socket.on('folderCreated', (folderData) => {
-        console.log(`Folder created: ${folderData.name}`);
-        // Mettre à jour l'état local pour refléter le nouveau dossier
-        setFolders(prevFolders => [...prevFolders, folderData]);
-      });
-
-      // socket.on('fileCreated', (fileData) => {
-      //   console.log(`File created: ${fileData.title}`);
-      //   // Mettre à jour l'état local pour refléter le nouveau fichier
-      //   if (selectedFolder) {
-      //     setSelectedFolder(prev => ({
-      //       ...prev,
-      //       documents: [...prev.documents, fileData]
-      //     }));
-      //   }
-      // });
-    }
-  }, [socket, selectedFolder]);
 
   // Récupére les dossiers et fichier
   useEffect(() => {
@@ -210,20 +188,28 @@ export default function DocumentExplorer() {
   // Créer un dossier
   async function handleCreateFolder() {
     if (!newFolderName) return;
+
     const res = await fetch(`http://localhost:8000/api/folders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: newFolderName }),
       credentials: 'include'
     });
+
     if (res.ok) {
       const folder = await res.json();
+
+      if (socket) {
+        socket.emit('folderCreated', folder);
+      }
+
       setFolders(prev => [...prev, { ...folder, documents: [] }]);
       await fetchData();
       setNewFolderName('');
       setShowCreateFolderModal(false);
     }
   }
+
 
   return (
     <>

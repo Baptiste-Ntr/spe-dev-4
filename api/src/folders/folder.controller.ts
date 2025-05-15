@@ -11,15 +11,18 @@ import { FolderGateway } from '../gateways/folder.gateway';
 export class FolderController {
   private readonly logger = new Logger(FolderController.name);
 
-  constructor(private readonly foldersService: FoldersService,private readonly folderGateway: FolderGateway) {}
+  constructor(
+    private readonly foldersService: FoldersService,
+    private readonly folderGateway: FolderGateway,
+  ) {}
 
   @Post()
   async create(@Body() createFolderDto: CreateFolderDto, @Req() req) {
     this.logger.log(`Creating folder: ${createFolderDto.name}`);
     const folder = await this.foldersService.create(createFolderDto, req.user.userId);
 
-    // Émettre un événement WebSocket
-    this.folderGateway.server.emit('folderCreated', folder);
+    this.folderGateway.logFolderCreated(folder);
+    FolderGateway.server.emit('folderCreated', folder);
 
     return folder;
   }

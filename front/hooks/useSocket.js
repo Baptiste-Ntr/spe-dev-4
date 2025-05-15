@@ -32,17 +32,10 @@ const useSocket = () => {
       console.log(message);
     });
 
-    // Écouter l'événement de création de dossier
     newSocket.on('folderCreated', (folderData) => {
-      console.log(`Folder created: ${folderData.name}`);
+      console.log(`📁 Folder created: ${folderData.name}`);
     });
 
-    // // Écouter l'événement de création de fichier
-    // newSocket.on('fileCreated', (fileData) => {
-    //   console.log(`File created: ${fileData.name}`);
-    // });
-
-    // Nettoyer les écouteurs d'événements lors du démontage du composant
     return () => {
       newSocket.off('connect');
       newSocket.off('disconnect');
@@ -54,7 +47,12 @@ const useSocket = () => {
     };
   }, []);
 
-  return socket;
+  const createFolder = (folderName) => {
+    if (socket) {
+      socket.emit('folderCreated', { name: folderName });
+    }
+  };
+  return { socket, createFolder };
 };
 
-export default useSocket; // Exportez le hook
+export default useSocket;

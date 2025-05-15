@@ -12,19 +12,23 @@ export default function DashboardPage() {
     const router = useRouter();
 
     useEffect(() => {
-        if (socket) {
-            const handleConnect = () => {
-                toast.success(`Vous êtes maintenant connecté au serveur !`);
-            };
 
-            socket.on('connect', handleConnect);
+    if (!socket || typeof socket.on !== 'function') {
+        console.warn('socket non prêt ou invalide dans Dashboard:', socket);
+        return;
+    }
 
-            // Nettoyer les écouteurs d'événements lors du démontage du composant
-            return () => {
-                socket.off('connect', handleConnect);
-            };
-        }
-    }, [socket]);  
+    const handleConnect = () => {
+        toast.success(`Vous êtes maintenant connecté au serveur !`);
+    };
+
+    socket.on('connect', handleConnect);
+
+    return () => {
+        socket.off('connect', handleConnect);
+    };
+    }, [socket]);
+ 
 
     return (
         <div className="p-6">

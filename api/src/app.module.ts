@@ -8,6 +8,8 @@ import { SocketModule } from './gateways/socket.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { DocumentsModule } from './documents/documents.module';
 import { FoldersModule } from './folders/folder.modules';
+import { FolderController } from './folders/folder.controller';
+import { FolderGateway } from './gateways/folder.gateway';
 
 @Module({
   imports: [
@@ -20,7 +22,7 @@ import { FoldersModule } from './folders/folder.modules';
     DocumentsModule,
     FoldersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, FolderController],
+  providers: [AppService, FolderGateway],
 })
 export class AppModule { }

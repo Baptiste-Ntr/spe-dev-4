@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
+import { CreateUserByAdminDto } from './dto/create-user-by-admin.dto';
 
 interface RequestWithUser extends Request {
     user: {
@@ -40,11 +41,23 @@ export class UserController {
     async createUser(@Body() data: CreateUserDto) {
         return this.userService.createUser(data);
     }
+    
+    @UseGuards(JwtAuthGuard)
+    @Post('by-admin')
+    async createUserByAdmin(@Body() data: CreateUserByAdminDto) {
+        return this.userService.createUserByAdmin(data);
+    }
 
     @UseGuards(JwtAuthGuard)
     @Patch('update/:id')
     async updateUser(@Param('id') id: string, @Body() data: UpdateUserDto) {
         return this.userService.updateUser(id, data);
+    }
+    
+    @UseGuards(JwtAuthGuard)
+    @Patch(':id/block')
+    async blockUser(@Param('id') id: string) {
+        return this.userService.blockUser(id);
     }
 
     @UseGuards(JwtAuthGuard)

@@ -6,16 +6,37 @@ import { createContext, useEffect, useState } from "react";
 type AuthContextType = {
     user: unknown;
     isLoading: boolean;
+    refreshUser: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType>({
     user: null,
     isLoading: true,
+    refreshUser: async () => {}
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const refreshUser = async () => {
+        try {
+            setIsLoading(true);
+            const data = await fetcher("/api/user/me", {
+                credentials: "include"
+            });
+            setUser(data);
+        } catch (error) {
+            console.error("Error refreshing authentication:", error);
+            setUser(null);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        refreshUser();
+    }, []);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -35,7 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }, [])
 
     return (
-        <AuthContext.Provider value={{ user, isLoading }}>
+        <AuthContext.Provider value={{ user, isLoading, refreshUser }}>
             {children}
         </AuthContext.Provider>
     )

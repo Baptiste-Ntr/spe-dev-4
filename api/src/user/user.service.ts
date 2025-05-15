@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { hash } from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from '@prisma/client';
+import { CreateUserByAdminDto } from './dto/create-user-by-admin.dto';
 
 @Injectable()
 export class UserService {
@@ -50,6 +51,30 @@ export class UserService {
 
         return user;
     }
+    
+    async createUserByAdmin(data: CreateUserByAdminDto) {
+        const { password, ...userData } = data;
+
+        const user = await this.prisma.user.create({
+            data: {
+                ...userData,
+                permissions: data.permissions ? { create: data.permissions } : undefined,
+                invitationsSent: data.invitationsSent ? { create: data.invitationsSent } : undefined,
+                invitationsReceived: data.invitationsReceived ? { create: data.invitationsReceived } : undefined,
+                documentsUpdated: data.documentsUpdated ? { create: data.documentsUpdated } : undefined,
+                // Création du dossier Home 
+                ownedFolders: {
+                    create: {
+                        name: 'Home'
+                    }
+                },
+                // Hash du mot de passe
+                passwordHash: await hash(password, 10)
+            }
+        });
+
+        return user;
+    }
 
     async updateUser(id: string, data: UpdateUserDto) {
 
@@ -77,5 +102,20 @@ export class UserService {
         })
 
         return user;
+    }
+
+    async blockUser(id: string) {
+        // First find the user to check their current blocked status
+        const user = await this.prisma.user.findUnique({
+            where: { id }
+        });
+        
+        if (!user) throw new NotFoundException('User not found');
+        
+        // Toggle the blocked status
+        return await this.prisma.user.update({
+            where: { id },
+            data: { blockedAt: user.blockedAt ? null : new Date() }
+        });
     }
 }

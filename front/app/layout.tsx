@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/AuthContext";
+import { Navbar } from "@/components/Header/NavBar";
 
 const poppins = Poppins({
   variable: "--font-poppins",

@@ -5,12 +5,15 @@ import { Input } from "@/components/ui/input"
 import { EyeOff } from "lucide-react"
 import { Label } from "@/components/ui/label"
 import { Eye } from "lucide-react"
-import { useState } from "react"
+import { useState,useContext } from "react"
 import { useForm } from "react-hook-form"
 import { fetcher } from "@/lib/fetcher"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { TwoFactorVerification } from "@/components/auth/TwoFactorVerification"
+import { AuthContext } from "@/context/AuthContext"
+
+
 
 export default function AuthPage() {
     const { register, handleSubmit, setError, formState: { errors } } = useForm<{ email: string, password: string, confirmPassword?: string, firstName?: string, lastName?: string }>()
@@ -19,6 +22,8 @@ export default function AuthPage() {
     const [isLoading, setIsLoading] = useState(false)
     const [showTwoFactor, setShowTwoFactor] = useState(false)
     const router = useRouter()
+    const { refreshUser } = useContext(AuthContext);
+
 
     const onSubmit = async (data: { email: string, password: string, confirmPassword?: string }) => {
         // Vérification du format de l'email
@@ -52,6 +57,7 @@ export default function AuthPage() {
                 toast.info("Veuillez entrer votre code 2FA")
             } else {
                 toast.success(`Successfully ${isRegister ? "registered" : "logged in"}`)
+                await refreshUser();
                 router.push("/dashboard")
             }
         } catch (error) {

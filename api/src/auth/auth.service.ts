@@ -21,6 +21,9 @@ export class AuthService {
         if (!passwordOk) {
             throw new UnauthorizedException('Mot de passe incorrect.');
         }
+        if (user.blockedAt) {
+            throw new UnauthorizedException('Ce compte est bloqué.');
+        }
         const { passwordHash, ...result } = user;
         return result;
     }

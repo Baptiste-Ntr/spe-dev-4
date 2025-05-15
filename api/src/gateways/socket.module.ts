@@ -1,9 +1,9 @@
-import {Module} from '@nestjs/common';
-import { UserGateway } from './user.gateway';
-import { FolderGateway } from './folder.gateway';
+import { Module } from '@nestjs/common';
+import { CollaborationGateway } from './collaboration.gateway';
+
 @Module({
-    providers: [UserGateway, FolderGateway],
-    exports: [FolderGateway],
+    providers: [CollaborationGateway],
+    exports: [CollaborationGateway],
 })
 
-export class SocketModule {};
+export class SocketModule { };

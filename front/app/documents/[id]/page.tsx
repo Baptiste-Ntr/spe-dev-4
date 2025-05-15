@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { AuthContext } from '@/context/AuthContext'
 import { User as UserType } from '@/types/model'
 import { useParams } from 'next/navigation'
+import { socketService } from '@/lib/socket'
 
 export interface Document {
     id: string
@@ -42,9 +43,22 @@ export default function DocumentPage() {
                 setTitle(res.title)
                 setContent(res.content)
                 contentRef.current = res.content
+
+                // Rejoindre le document pour la collaboration
+                if (typeof params.id === 'string') {
+                    socketService.joinDocument(params.id)
+                }
             }
         }
         fetchDocument()
+
+        // Nettoyer la connexion WebSocket lors du démontage
+        return () => {
+            if (params?.id && typeof params.id === 'string') {
+                socketService.leaveDocument(params.id)
+            }
+            socketService.disconnect()
+        }
     }, [params?.id])
 
     useEffect(() => {

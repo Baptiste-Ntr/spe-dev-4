@@ -9,7 +9,6 @@ import { PrismaModule } from './prisma/prisma.module';
 import { DocumentsModule } from './documents/documents.module';
 import { FoldersModule } from './folders/folder.modules';
 import { FolderController } from './folders/folder.controller';
-import { FolderGateway } from './gateways/folder.gateway';
 
 @Module({
   imports: [
@@ -23,6 +22,6 @@ import { FolderGateway } from './gateways/folder.gateway';
     FoldersModule,
   ],
   controllers: [AppController, FolderController],
-  providers: [AppService, FolderGateway],
+  providers: [AppService],
 })
 export class AppModule { }

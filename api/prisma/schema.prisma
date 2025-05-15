@@ -18,6 +18,12 @@ enum Role {
   USER
 }
 
+enum DocumentType {
+  TEXT
+  PDF
+  IMAGE
+}
+
 model User {
   id                 String        @id @default(uuid())
   email              String        @unique
@@ -80,6 +86,7 @@ model Document {
   updatedBy   User?     @relation("LastEditor", fields: [updatedById], references: [id])
   updatedById String?
   createdAt   DateTime  @default(now())
+  type        DocumentType @default(TEXT)
 
   // permissions & invitations
   permissions  Permission[]   @relation("DocumentPermissions")

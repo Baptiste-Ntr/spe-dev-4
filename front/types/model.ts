@@ -22,23 +22,23 @@ export interface User {
 }
 
 export interface Folder {
-    id: string;
-    name: string;
-    parentId?: string;
-    createdAt: Date;
-    updatedAt: Date;
+  id: string;
+  name: string;
+  documents: Document[];
 }
 
 export interface Document {
+  id: string;
+  title: string;
+  updatedBy?: {
     id: string;
-    title: string;
-    content?: string;
-    filePath?: string;
-    mimeType?: string;
-    folderId?: string;
-    updatedById?: string;
-    updatedAt: Date;
-    createdAt: Date;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+  type: 'TEXT' | 'PDF' | 'IMAGE';
 }
 
 export interface Permission {

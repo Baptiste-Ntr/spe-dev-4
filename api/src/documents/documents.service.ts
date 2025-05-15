@@ -3,6 +3,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDocumentDto } from './dto/create-documents.dto';
 import { ConfigService } from '@nestjs/config';
+import { UpdateDocumentDto } from './dto/update-document.dto';
 import * as fs from 'fs';
 import * as path from 'path';
 import { DocumentType } from '@prisma/client';
@@ -58,10 +59,36 @@ export class DocumentsService {
         });
     }
 
+    async findById(id: string) {
+        const document = await this.prisma.document.findUnique({
+            where: { id },
+            include: {
+                folder: { select: { id: true, name: true } },
+            },
+        });
+        if (!document) {
+            throw new NotFoundException('Document non trouvé');
+        }
+        return document;
+    }
+
     async rename(id: string, newTitle: string) {
         return this.prisma.document.update({
             where: { id },
             data: { title: newTitle, updatedAt: new Date() },
+        });
+    }
+
+    async update(id: string, dto: UpdateDocumentDto) {
+        return this.prisma.document.update({
+            where: { id },
+            data: {
+                title: dto.title,
+                content: dto.content,
+                folderId: dto.folderId,
+                updatedAt: dto.updatedAt,
+                updatedById: dto.updatedById,
+            },
         });
     }
 

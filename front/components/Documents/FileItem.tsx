@@ -1,32 +1,39 @@
 import React from 'react';
 import { Document } from '@/types/model';
 import { formatDate } from '@/utils/formatter';
+import Link from 'next/link';
 
 interface FileItemProps {
-    document: Document;
-    onRename: (doc: Document) => void;
-    onDelete: (id: string) => void;
+  document: Document;
+  onRename: (doc: Document) => void;
+  onDelete: (id: string) => void;
 }
 
 export default function FileItem({ document, onRename, onDelete }: FileItemProps) {
-    const getFileIcon = () => {
-        if (!document.type) return '📄'; // Document standard
+  const getFileIcon = () => {
+    if (!document.type) return '📄'; // Document standard
 
-        if (document.type.includes('PDF')) return '📕';
-        if (document.type.includes('IMAGE')) return '🖼️';
-        if (document.type.includes('TEXT')) return '📝';
-        console.log("dedede", document.type);
-        
-        
-        return '📄'; // Document standard par défaut
-    };
-    
-    return (
+    if (document.type.includes('PDF')) return '📕';
+    if (document.type.includes('IMAGE')) return '🖼️';
+    if (document.type.includes('TEXT')) return '📝';
+    console.log("dedede", document.type);
+
+
+    return '📄'; // Document standard par défaut
+  };
+
+  return (
     <li className="flex justify-between items-start p-3 border rounded hover:bg-gray-50">
       <div className="flex items-center">
         <span className="text-2xl mr-3">{getFileIcon()}</span>
         <div>
-          <div className="font-medium">{document.title}</div>
+          {document.type === 'TEXT' ? (
+            <Link href={`/documents/${document.id}`} className="flex-grow hover:text-blue-600">
+              {document.title}
+            </Link>
+          ) : (
+            <span>{document.title}</span>
+          )}
           {/* {document.filePath && (
             <a 
               href={getFileUrl() || '#'} 

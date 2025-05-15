@@ -41,9 +41,10 @@ model User {
 
   // relations
   permissions         Permission[]
-  invitationsSent     Invitation[] @relation("InvitedBy")
-  invitationsReceived Invitation[] @relation("InvitedTo")
-  documentsUpdated    Document[]   @relation("LastEditor")
+  invitationsSent     Invitation[]   @relation("InvitedBy")
+  invitationsReceived Invitation[]   @relation("InvitedTo")
+  documentsUpdated    Document[]     @relation("LastEditor")
+  Collaborator        Collaborator[]
 }
 
 model Folder {
@@ -88,8 +89,18 @@ model Document {
   type        DocumentType @default(TEXT)
 
   // permissions & invitations
-  permissions Permission[] @relation("DocumentPermissions")
-  invitations Invitation[]
+  permissions  Permission[]   @relation("DocumentPermissions")
+  invitations  Invitation[]
+  Collaborator Collaborator[]
+}
+
+model Collaborator {
+  id         String   @id @default(uuid())
+  document   Document @relation(fields: [documentId], references: [id])
+  documentId String
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  active     Boolean
 }
 
 model Permission {

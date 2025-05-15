@@ -9,9 +9,13 @@ import RenameFileModal from '@/components/Documents/RenameFileModal';
 import CreateFolderModal from '@/components/Documents/CreateFolderModal';
 import RenameFolderModal from '@/components/Documents/RenameFolderModal';
 import UploadFileModal from '@/components/Documents/UploadFileModal';
+import useSocket from '@/hooks/useSocket';
+
 
 export default function DocumentExplorer() {
     // Gestion des dossiers avec le hook personnalisé
+    const { socket } = useSocket();
+
     const {
         folders,
         selectedFolder,
@@ -46,9 +50,25 @@ export default function DocumentExplorer() {
 
     // Wrapper pour rafraîchir les dossiers après les opérations de fichier
     const createFile = async (title: string) => {
-        const success = await createFileInHook(title);
-        if (success) await refreshFolders();
-        return success;
+      const success = await createFileInHook(title);
+      if (success) {
+        if (socket) {
+          socket.emit('fileCreated', { title, folderId: selectedFolder?.id });
+        }
+        await refreshFolders();
+      }
+      return success;
+    };
+
+    const handleCreateFolder = async (name: string) => {
+      const success = await createFolder(name);
+      if (success) {
+        if (socket) {
+          socket.emit('folderCreated', { name });
+        }
+        await refreshFolders();
+      }
+      return success;
     };
 
     const renameFile = async (id: string, title: string) => {
@@ -68,6 +88,28 @@ export default function DocumentExplorer() {
         if (success) await refreshFolders();
         return success;
     };
+
+    useEffect(() => {
+      if (!socket) return;
+
+      const onFolderCreated = (folder) => {
+        refreshFolders(); // Pour recharger les dossiers/fichiers
+      };
+
+      const onFileCreated = (file) => {
+        refreshFolders();
+      };
+
+      // Écoute des événements
+      socket.on('folderCreated', onFolderCreated);
+      socket.on('fileCreated', onFileCreated);
+
+      // Nettoyage à la fin
+      return () => {
+        socket.off('folderCreated', onFolderCreated);
+        socket.off('fileCreated', onFileCreated);
+      };
+    }, [socket, refreshFolders]);
 
     return (
         <div className="flex h-screen">
@@ -120,7 +162,7 @@ export default function DocumentExplorer() {
             {showCreateFolderModal && (
                 <CreateFolderModal
                     onClose={() => setShowCreateFolderModal(false)}
-                    onSubmit={createFolder}
+                    onSubmit={handleCreateFolder}
                 />
             )}
 

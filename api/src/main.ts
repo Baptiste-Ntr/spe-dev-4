@@ -31,6 +31,6 @@ async function bootstrap() {
 
   logger.log('Cookie parser enabled');
 
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3001);
 }
 bootstrap();

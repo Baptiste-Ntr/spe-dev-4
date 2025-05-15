@@ -4,17 +4,27 @@ import { CreateFolderDto } from './dto/create-folder.dto';
 import { UpdateFolderDto } from './dto/update-folder.dto';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 import { ShareFolderDto } from './dto/share-folder.dto';
+import { FolderGateway } from '../gateways/folder.gateway';
 
 @Controller('folders')
 @UseGuards(JwtAuthGuard) // Protection de toutes les routes
 export class FolderController {
   private readonly logger = new Logger(FolderController.name);
 
-  constructor(private readonly foldersService: FoldersService) {}
+  constructor(
+    private readonly foldersService: FoldersService,
+    private readonly folderGateway: FolderGateway,
+  ) {}
 
   @Post()
-  create(@Body() createFolderDto: CreateFolderDto, @Req() req) {
-    return this.foldersService.create(createFolderDto, req.user.userId);
+  async create(@Body() createFolderDto: CreateFolderDto, @Req() req) {
+    this.logger.log(`Creating folder: ${createFolderDto.name}`);
+    const folder = await this.foldersService.create(createFolderDto, req.user.userId);
+
+    this.folderGateway.logFolderCreated(folder);
+    FolderGateway.server.emit('folderCreated', folder);
+
+    return folder;
   }
 
   @Get()

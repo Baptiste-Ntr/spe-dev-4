@@ -1,40 +1,40 @@
 'use client'
 
-import { useEffect, useRef } from 'react';
-import { socketService } from '@/lib/socket';
-import { CollaboratorCursors } from './CollaboratorCursors';
+import { useEffect, useRef } from 'react'
+import { socketService } from '@/lib/socket'
 
 interface ContentProps {
-    content: string;
-    setContent: (content: string) => void;
-    onSave: () => void;
+    content: string
+    setContent: (content: string) => void
+    onSave: () => void
+    documentId: string
 }
 
-export const Content = ({ content, setContent, onSave }: ContentProps) => {
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+export const Content = ({ content, setContent, onSave, documentId }: ContentProps) => {
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const isLocalChange = useRef(false)
 
     useEffect(() => {
-        if (textareaRef.current) {
-            textareaRef.current.focus();
+        // Rejoindre le document et configurer la mise à jour du contenu
+        socketService.joinDocument(documentId, (newContent) => {
+            if (!isLocalChange.current) {
+                setContent(newContent)
+            }
+        })
+
+        return () => {
+            socketService.leaveDocument(documentId)
         }
-    }, []);
+    }, [documentId, setContent])
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setContent(e.target.value);
-        onSave();
-
-        // Mettre à jour la position du curseur
-        if (textareaRef.current) {
-            const textarea = textareaRef.current;
-            const cursorPosition = textarea.selectionStart;
-            const textBeforeCursor = textarea.value.substring(0, cursorPosition);
-            const lines = textBeforeCursor.split('\n');
-            const line = lines.length - 1;
-            const column = lines[lines.length - 1].length;
-
-            socketService.updateCursor('document-id', { line, column });
-        }
-    };
+        isLocalChange.current = true
+        const newContent = e.target.value
+        setContent(newContent)
+        socketService.updateDocument(documentId, newContent)
+        onSave()
+        isLocalChange.current = false
+    }
 
     return (
         <div className="relative flex-1 p-4">
@@ -45,7 +45,6 @@ export const Content = ({ content, setContent, onSave }: ContentProps) => {
                 className="w-full h-full p-4 resize-none focus:outline-none"
                 style={{ minHeight: 'calc(100vh - 120px)' }}
             />
-            <CollaboratorCursors />
         </div>
-    );
-};
+    )
+}

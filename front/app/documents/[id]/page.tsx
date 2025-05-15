@@ -39,7 +39,9 @@ export default function DocumentPage() {
                 contentRef.current = res.content
 
                 if (typeof params.id === 'string') {
-                    socketService.joinDocument(params.id)
+                    socketService.joinDocument(params.id, (content: string) => {
+                        setContent(content)
+                    })
                 }
             }
         }
@@ -134,6 +136,7 @@ export default function DocumentPage() {
                         debouncedSave()
                     }}
                     onSave={debouncedSave}
+                    documentId={document.id}
                 />
             </div>
             {showCollaborators && <SideBar showCollaborators={showCollaborators} document={document} />}

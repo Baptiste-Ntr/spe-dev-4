@@ -11,15 +11,18 @@ import { FoldersModule } from './folders/folder.modules';
 import { FolderController } from './folders/folder.controller';
 import { InvitationModule } from './invitation/invitation.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     AuthModule,
     UserModule,
     PrismaModule,
     TwoFactorAuthModule,
     SocketModule,
-    PrismaModule,
     DocumentsModule,
     FoldersModule,
     InvitationModule,

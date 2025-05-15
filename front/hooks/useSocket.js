@@ -33,7 +33,12 @@ const useSocket = () => {
     });
 
     newSocket.on('folderCreated', (folderData) => {
-      console.log(`📁 Folder created: ${folderData.name}`);
+      console.log(`Folder created: ${folderData.name}`);
+    });
+
+    // Écouter l'événement de création de fichier
+    newSocket.on('fileCreated', (fileData) => {
+        console.log(`File created: ${fileData.title}`);
     });
 
     return () => {

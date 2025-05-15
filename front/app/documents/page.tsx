@@ -96,6 +96,10 @@ export default function DocumentExplorer() {
       const doc = await res.json();
       console.log(doc);
 
+      if (socket) {
+        socket.emit('fileCreated', doc);
+      }
+
       setFolders(prev => prev.map(f => f.id === selectedFolder?.id ? {
         ...f,
         documents: [...f.documents, doc],

@@ -33,7 +33,7 @@ export class FolderGateway implements OnGatewayConnection, OnGatewayDisconnect, 
   }
 
   handleDisconnect(client: Socket) {
-    this.logger.log(`📁 Client disconnected: ${client.id}`);
+    this.logger.log(`📁  Client disconnected: ${client.id}`);
   }
 
   @SubscribeMessage('folderCreated')

@@ -8,7 +8,13 @@ import {
     MessageBody
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+
+interface ActiveUser {
+    id: string;
+    socketId: string;
+}
 
 @WebSocketGateway({
     cors: {
@@ -20,65 +26,87 @@ export class CollaborationGateway implements OnGatewayConnection, OnGatewayDisco
     @WebSocketServer()
     server: Server;
 
-    private documentRooms: Map<string, Set<string>> = new Map();
+    private readonly logger = new Logger(CollaborationGateway.name);
+    private documentRooms: Map<string, Map<string, string>> = new Map(); // documentId -> Map<socketId, userId>
 
     constructor(private prisma: PrismaService) { }
 
-    async handleConnection(client: Socket) {
-        console.log(`Client connecté: ${client.id}`);
+    handleConnection(client: Socket) {
+        this.logger.log(`Client connecté: ${client.id}`);
     }
 
-    async handleDisconnect(client: Socket) {
-        console.log(`Client déconnecté: ${client.id}`);
-        // Nettoyer les rooms
+    handleDisconnect(client: Socket) {
+        this.logger.log(`Client déconnecté: ${client.id}`);
+
+        // Nettoyer les salles de document
         this.documentRooms.forEach((users, documentId) => {
             if (users.has(client.id)) {
+                const userId = users.get(client.id);
                 users.delete(client.id);
+
                 if (users.size === 0) {
                     this.documentRooms.delete(documentId);
+                } else {
+                    // Envoyer la liste mise à jour des collaborateurs actifs
+                    const activeUsers = Array.from(users.values());
+                    this.server.to(documentId).emit('activeCollaborators', { users: activeUsers });
                 }
+
+                this.logger.log(`Utilisateur ${userId} déconnecté du document ${documentId}`);
             }
         });
     }
 
     @SubscribeMessage('joinDocument')
-    async handleJoinDocument(
-        @ConnectedSocket() client: Socket,
-        @MessageBody() data: { documentId: string }
-    ) {
-        const { documentId } = data;
+    handleJoinDocument(client: Socket, payload: { documentId: string, userId: string }) {
+        const { documentId, userId } = payload;
+
+        // Rejoindre la salle du document
         client.join(documentId);
 
+        // Ajouter l'utilisateur à la liste des collaborateurs actifs
         if (!this.documentRooms.has(documentId)) {
-            this.documentRooms.set(documentId, new Set());
+            this.documentRooms.set(documentId, new Map());
         }
-        this.documentRooms.get(documentId)?.add(client.id);
+        this.documentRooms.get(documentId)?.set(client.id, userId);
+
+        // Envoyer la liste des collaborateurs actifs à tous les clients dans la salle
+        const activeUsers = Array.from(this.documentRooms.get(documentId)?.values() || []);
+        this.server.to(documentId).emit('activeCollaborators', { users: activeUsers });
+
+        this.logger.log(`Utilisateur ${userId} a rejoint le document ${documentId}`);
     }
 
     @SubscribeMessage('leaveDocument')
-    async handleLeaveDocument(
-        @ConnectedSocket() client: Socket,
-        @MessageBody() data: { documentId: string }
-    ) {
-        const { documentId } = data;
+    handleLeaveDocument(client: Socket, payload: { documentId: string, userId: string }) {
+        const { documentId, userId } = payload;
+
+        // Quitter la salle du document
         client.leave(documentId);
 
+        // Retirer l'utilisateur de la liste des collaborateurs actifs
         const users = this.documentRooms.get(documentId);
         if (users) {
             users.delete(client.id);
             if (users.size === 0) {
                 this.documentRooms.delete(documentId);
+            } else {
+                // Envoyer la liste mise à jour des collaborateurs actifs
+                const activeUsers = Array.from(users.values());
+                this.server.to(documentId).emit('activeCollaborators', { users: activeUsers });
             }
         }
+
+        this.logger.log(`Utilisateur ${userId} a quitté le document ${documentId}`);
     }
 
     @SubscribeMessage('updateDocument')
-    async handleUpdateDocument(
-        @ConnectedSocket() client: Socket,
-        @MessageBody() data: { documentId: string; content: string }
-    ) {
-        const { documentId, content } = data;
-        // Diffuser le contenu mis à jour aux autres clients
-        client.to(documentId).emit('documentUpdated', { content });
+    handleUpdateDocument(client: Socket, payload: { documentId: string, content: string, userId: string }) {
+        const { documentId, content, userId } = payload;
+
+        // Diffuser la mise à jour à tous les clients dans la salle, sauf l'expéditeur
+        client.to(documentId).emit('documentUpdated', { content, userId });
+
+        this.logger.log(`Document ${documentId} mis à jour par l'utilisateur ${userId}`);
     }
 } 

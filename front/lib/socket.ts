@@ -5,6 +5,8 @@ class SocketService {
     private socket: Socket | null = null;
     private documentId: string | null = null;
     private onContentUpdate: ((content: string) => void) | null = null;
+    private onCollaboratorsUpdate: ((users: string[]) => void) | null = null;
+    private userId: string | null = null;
 
     connect() {
         if (!this.socket) {
@@ -15,6 +17,9 @@ class SocketService {
 
             this.socket.on('connect', () => {
                 console.log('Connecté au serveur WebSocket');
+                if (this.documentId && this.userId) {
+                    this.socket?.emit('joinDocument', { documentId: this.documentId, userId: this.userId });
+                }
             });
 
             this.socket.on('disconnect', () => {
@@ -27,9 +32,15 @@ class SocketService {
                 toast.error(error.message || 'Erreur de connexion au serveur de collaboration');
             });
 
-            this.socket.on('documentUpdated', ({ content }) => {
-                if (this.onContentUpdate) {
+            this.socket.on('documentUpdated', ({ content, userId }) => {
+                if (this.onContentUpdate && userId !== this.userId) {
                     this.onContentUpdate(content);
+                }
+            });
+
+            this.socket.on('activeCollaborators', ({ users }) => {
+                if (this.onCollaboratorsUpdate) {
+                    this.onCollaboratorsUpdate(users);
                 }
             });
         }
@@ -37,31 +48,48 @@ class SocketService {
 
     disconnect() {
         if (this.socket) {
+            if (this.documentId && this.userId) {
+                this.socket.emit('leaveDocument', { documentId: this.documentId, userId: this.userId });
+            }
             this.socket.disconnect();
             this.socket = null;
             this.onContentUpdate = null;
+            this.onCollaboratorsUpdate = null;
+            this.userId = null;
+            this.documentId = null;
         }
     }
 
-    joinDocument(documentId: string, onContentUpdate: (content: string) => void) {
+    joinDocument(
+        documentId: string,
+        userId: string,
+        onContentUpdate: (content: string) => void,
+        onCollaboratorsUpdate: (users: string[]) => void
+    ) {
         if (!this.socket?.connected) {
             this.connect();
         }
         this.documentId = documentId;
+        this.userId = userId;
         this.onContentUpdate = onContentUpdate;
-        this.socket?.emit('joinDocument', { documentId });
+        this.onCollaboratorsUpdate = onCollaboratorsUpdate;
+        this.socket?.emit('joinDocument', { documentId, userId });
     }
 
-    leaveDocument(documentId: string) {
+    leaveDocument(documentId: string, userId: string) {
         if (this.socket) {
-            this.socket.emit('leaveDocument', { documentId });
+            this.socket.emit('leaveDocument', { documentId, userId });
             this.documentId = null;
+            this.userId = null;
             this.onContentUpdate = null;
+            this.onCollaboratorsUpdate = null;
         }
     }
 
     updateDocument(documentId: string, content: string) {
-        this.socket?.emit('updateDocument', { documentId, content });
+        if (this.socket && this.userId) {
+            this.socket.emit('updateDocument', { documentId, content, userId: this.userId });
+        }
     }
 }
 

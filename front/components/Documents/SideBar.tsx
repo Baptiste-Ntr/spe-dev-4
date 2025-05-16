@@ -3,8 +3,8 @@
 import { Mic, Plus } from "lucide-react"
 import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
-import { useState, useEffect } from "react"
+import { Avatar, AvatarFallback } from "../ui/avatar"
+import { useState, useEffect, useContext } from "react"
 import { User, Document } from "@/types/model"
 import { Dialog, DialogTrigger } from "../ui/dialog"
 import { InvitationModal } from "./invitationModal"
@@ -12,8 +12,15 @@ import { fetcher } from "@/services/api"
 import { ScrollArea } from "../ui/scroll-area"
 import { Badge } from "../ui/badge"
 import { Clock } from "lucide-react"
+import { AuthContext } from "@/context/AuthContext"
 
-export const SideBar = ({ showCollaborators, document }: { showCollaborators: boolean, document: Document }) => {
+interface SideBarProps {
+    showCollaborators: boolean
+    document: Document | null
+    activeCollaborators: string[]
+}
+
+export const SideBar = ({ showCollaborators, document, activeCollaborators }: SideBarProps) => {
     const [collaborators, setCollaborators] = useState<User[]>([])
     const [pendingInvitations, setPendingInvitations] = useState<Array<{
         id: string;
@@ -21,33 +28,48 @@ export const SideBar = ({ showCollaborators, document }: { showCollaborators: bo
         createdAt: Date;
     }>>([])
     const [isInvitationModalOpen, setIsInvitationModalOpen] = useState(false)
+    const { user } = useContext(AuthContext) as { user: User | null }
 
     useEffect(() => {
         const fetchCollaborators = async () => {
             try {
-                const data = await fetcher(`/documents/${document.id}/collaborators`, {
+                const data = await fetcher(`/documents/${document?.id}/collaborators`, {
                     credentials: "include",
                     headers: {
                         "Content-Type": "application/json",
                         "Accept": "application/json"
                     }
                 })
-                setCollaborators(data.activeCollaborators)
+
+                // S'assurer que l'utilisateur courant est dans la liste
+                const allCollaborators = data.activeCollaborators || []
+                if (user && !allCollaborators.some((c: User) => c.id === user.id)) {
+                    allCollaborators.push(user)
+                }
+
+                setCollaborators(allCollaborators)
                 setPendingInvitations(data.pendingInvitations)
             } catch (error) {
                 console.error("Erreur lors du chargement des collaborateurs:", error)
             }
         }
 
-        if (showCollaborators) {
+        if (showCollaborators && document?.id) {
             fetchCollaborators()
-            // Rafraîchir toutes les 30 secondes
             const interval = setInterval(fetchCollaborators, 30000)
             return () => clearInterval(interval)
         }
-    }, [document.id, showCollaborators])
+    }, [document?.id, showCollaborators, user])
 
-    if (!showCollaborators) return null
+    if (!showCollaborators || !document) return null
+
+    // Filtrer les collaborateurs actifs et inactifs
+    const activeUsers = collaborators.filter(collaborator =>
+        collaborator.id && (collaborator.active || activeCollaborators.includes(collaborator.id))
+    )
+    const inactiveUsers = collaborators.filter(collaborator =>
+        collaborator.id && !collaborator.active && !activeCollaborators.includes(collaborator.id)
+    )
 
     return (
         <div className="h-screen border-l bg-background p-4 md:w-64">
@@ -79,31 +101,55 @@ export const SideBar = ({ showCollaborators, document }: { showCollaborators: bo
                 <div className="space-y-6">
                     {/* Collaborateurs actifs */}
                     <div>
-                        <h4 className="text-sm font-medium mb-2">Collaborateurs actifs</h4>
+                        <h4 className="text-sm font-medium mb-2">En ligne ({activeUsers.length})</h4>
                         <div className="space-y-2">
-                            {collaborators.length === 0 ? (
+                            {activeUsers.length === 0 ? (
                                 <p className="text-sm text-muted-foreground">Aucun collaborateur actif</p>
                             ) : (
-                                collaborators.map((collaborator) => (
-                                    <div key={collaborator.id} className="flex items-center gap-2">
+                                activeUsers.map((collaborator) => (
+                                    <div key={collaborator.id} className="flex items-center space-x-3">
                                         <div className="relative">
                                             <Avatar>
-                                                <AvatarImage src="/placeholder.svg" alt={`${collaborator.firstName} ${collaborator.lastName}`} />
                                                 <AvatarFallback>
-                                                    {`${collaborator?.firstName?.[0]}${collaborator?.lastName?.[0]}`}
+                                                    {`${collaborator.firstName?.[0]}${collaborator.lastName?.[0]}` || 'U'}
                                                 </AvatarFallback>
                                             </Avatar>
                                             <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 ring-2 ring-background" />
                                         </div>
-                                        <div>
+                                        <div className="flex-1">
                                             <p className="text-sm font-medium">{`${collaborator.firstName} ${collaborator.lastName}`}</p>
-                                            <p className="text-xs text-muted-foreground">En ligne</p>
+                                            <p className="text-xs text-muted-foreground">{collaborator.email}</p>
                                         </div>
                                     </div>
                                 ))
                             )}
                         </div>
                     </div>
+
+                    {/* Collaborateurs inactifs */}
+                    {inactiveUsers.length > 0 && (
+                        <div>
+                            <h4 className="text-sm font-medium mb-2">Hors ligne ({inactiveUsers.length})</h4>
+                            <div className="space-y-2">
+                                {inactiveUsers.map((collaborator) => (
+                                    <div key={collaborator.id} className="flex items-center space-x-3">
+                                        <div className="relative">
+                                            <Avatar>
+                                                <AvatarFallback>
+                                                    {`${collaborator.firstName?.[0]}${collaborator.lastName?.[0]}` || 'U'}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-gray-500 ring-2 ring-background" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium">{`${collaborator.firstName} ${collaborator.lastName}`}</p>
+                                            <p className="text-xs text-muted-foreground">{collaborator.email}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Invitations en attente */}
                     {pendingInvitations.length > 0 && (
@@ -113,7 +159,6 @@ export const SideBar = ({ showCollaborators, document }: { showCollaborators: bo
                                 {pendingInvitations.map((invitation) => (
                                     <div key={invitation.id} className="flex items-center gap-2">
                                         <Avatar>
-                                            <AvatarImage src="/placeholder.svg" alt={`${invitation.invitedTo.firstName} ${invitation.invitedTo.lastName}`} />
                                             <AvatarFallback>
                                                 {`${invitation.invitedTo?.firstName?.[0]}${invitation.invitedTo?.lastName?.[0]}`}
                                             </AvatarFallback>

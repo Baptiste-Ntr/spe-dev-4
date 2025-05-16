@@ -176,12 +176,11 @@ export class DocumentsService {
             throw new NotFoundException('Document non trouvé');
         }
 
-        const [activeCollaborators, pendingInvitations] = await Promise.all([
-            // Récupérer les collaborateurs actifs
+        const [allCollaborators, pendingInvitations] = await Promise.all([
+            // Récupérer tous les collaborateurs avec leur état actif
             this.prisma.collaborator.findMany({
                 where: {
-                    documentId,
-                    active: true
+                    documentId
                 },
                 include: {
                     user: {
@@ -213,14 +212,22 @@ export class DocumentsService {
             })
         ]);
 
-        // Ajouter l'inviteur à la liste des collaborateurs actifs s'il n'y est pas déjà
-        const allActiveCollaborators = activeCollaborators.map(c => c.user);
-        if (document.updatedBy?.id && !allActiveCollaborators.some(c => c.id === document.updatedBy?.id)) {
-            allActiveCollaborators.push(document.updatedBy);
+        // Créer la liste des collaborateurs avec leur état actif
+        const allUsers = allCollaborators.map(c => ({
+            ...c.user,
+            active: c.active
+        }));
+
+        // Ajouter l'inviteur à la liste des collaborateurs s'il n'y est pas déjà
+        if (document.updatedBy?.id && !allUsers.some(c => c.id === document.updatedBy?.id)) {
+            allUsers.push({
+                ...document.updatedBy,
+                active: true // L'inviteur est toujours considéré comme actif
+            });
         }
 
         return {
-            activeCollaborators: allActiveCollaborators,
+            activeCollaborators: allUsers,
             pendingInvitations: pendingInvitations.map(inv => ({
                 id: inv.id,
                 invitedTo: inv.invitedTo,

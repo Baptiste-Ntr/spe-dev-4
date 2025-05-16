@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useContext } from 'react'
 import { socketService } from '@/lib/socket'
+import { AuthContext } from '@/context/AuthContext'
+import { User } from '@/types/model'
 
 interface ContentProps {
     content: string
@@ -13,21 +15,35 @@ interface ContentProps {
 export const Content = ({ content, setContent, onSave, documentId }: ContentProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const isLocalChange = useRef(false)
+    const { user } = useContext(AuthContext) as { user: User }
 
     useEffect(() => {
+        if (!user?.id) return
+
         // Rejoindre le document et configurer la mise à jour du contenu
-        socketService.joinDocument(documentId, (newContent) => {
-            if (!isLocalChange.current) {
-                setContent(newContent)
+        socketService.joinDocument(
+            documentId,
+            user.id,
+            (newContent) => {
+                if (!isLocalChange.current) {
+                    setContent(newContent)
+                }
+            },
+            (users) => {
+                // Gérer la mise à jour des collaborateurs actifs si nécessaire
             }
-        })
+        )
 
         return () => {
-            socketService.leaveDocument(documentId)
+            if (user?.id) {
+                socketService.leaveDocument(documentId, user.id)
+            }
         }
-    }, [documentId, setContent])
+    }, [documentId, setContent, user?.id])
 
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        if (!user?.id) return
+
         isLocalChange.current = true
         const newContent = e.target.value
         setContent(newContent)

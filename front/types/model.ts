@@ -19,6 +19,7 @@ export interface User {
   blockedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+  active?: boolean;
 }
 
 export interface Folder {

@@ -18,6 +18,7 @@ export default function DocumentPage() {
     const [content, setContent] = useState('')
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved")
     const [showCollaborators, setShowCollaborators] = useState(true)
+    const [activeCollaborators, setActiveCollaborators] = useState<string[]>([])
     const { user } = useContext(AuthContext) as { user: UserType | null }
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const contentRef = useRef(content)
@@ -38,22 +39,29 @@ export default function DocumentPage() {
                 setContent(res.content)
                 contentRef.current = res.content
 
-                if (typeof params.id === 'string') {
-                    socketService.joinDocument(params.id, (content: string) => {
-                        setContent(content)
-                    })
+                if (typeof params.id === 'string' && user?.id) {
+                    socketService.joinDocument(
+                        params.id,
+                        user.id,
+                        (content: string) => {
+                            setContent(content)
+                        },
+                        (users: string[]) => {
+                            setActiveCollaborators(users)
+                        }
+                    )
                 }
             }
         }
         fetchDocument()
 
         return () => {
-            if (params?.id && typeof params.id === 'string') {
-                socketService.leaveDocument(params.id)
+            if (params?.id && typeof params.id === 'string' && user?.id) {
+                socketService.leaveDocument(params.id, user.id)
             }
             socketService.disconnect()
         }
-    }, [params?.id])
+    }, [params?.id, user?.id])
 
     useEffect(() => {
         if (document && (title !== document.title || content !== document.content)) {
@@ -136,10 +144,16 @@ export default function DocumentPage() {
                         debouncedSave()
                     }}
                     onSave={debouncedSave}
-                    documentId={document.id}
+                    documentId={document?.id || ''}
                 />
             </div>
-            {showCollaborators && <SideBar showCollaborators={showCollaborators} document={document} />}
+            {showCollaborators && (
+                <SideBar
+                    showCollaborators={showCollaborators}
+                    document={document}
+                    activeCollaborators={activeCollaborators}
+                />
+            )}
         </div>
     )
 } 

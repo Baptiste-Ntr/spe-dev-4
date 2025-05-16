@@ -30,12 +30,12 @@ export const NavBar = ({
 }) => {
     const router = useRouter()
     const [editedBy, setEditedBy] = useState<UserType | null>(null)
-
     const { user } = useContext(AuthContext) as { user: UserType }
 
     useEffect(() => {
         const getEditedBy = async () => {
-            const res = await fetcher(`/user/${user?.id}`, {
+            if (!document.updatedBy?.id) return
+            const res = await fetcher(`/user/${document.updatedBy.id}`, {
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
@@ -43,11 +43,11 @@ export const NavBar = ({
                 }
             })
             if (res) {
-                setEditedBy({ firstName: res.firstName, lastName: res.lastName })
+                setEditedBy(res)
             }
         }
         getEditedBy()
-    }, [document.updatedById])
+    }, [document.updatedBy?.id])
 
     return (
         <div className="border-b bg-background p-4">
@@ -94,11 +94,15 @@ export const NavBar = ({
             </div>
             <div className="mt-2 flex items-center text-xs text-muted-foreground">
                 <Clock className="mr-1 h-3 w-3" />
-                Dernière modification le {new Date(document.updatedAt).toLocaleDateString()} à {new Date(document.updatedAt).toLocaleTimeString()}
-                {editedBy && (
-                    <span className="ml-2">
-                        par {editedBy.firstName} {editedBy.lastName}
-                    </span>
+                {document.updatedAt && (
+                    <>
+                        Dernière modification le {new Date(document.updatedAt).toLocaleDateString()} à {new Date(document.updatedAt).toLocaleTimeString()}
+                        {editedBy && (
+                            <span className="ml-2">
+                                par {editedBy.firstName} {editedBy.lastName}
+                            </span>
+                        )}
+                    </>
                 )}
             </div>
         </div>

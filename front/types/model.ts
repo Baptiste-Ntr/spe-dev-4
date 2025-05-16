@@ -73,8 +73,11 @@ export type Notification = {
   documentId?: string
   documentTitle?: string
   senderId: string
-  senderName: string
-  senderAvatar?: string
+  sender: {
+    firstName?: string
+    lastName?: string
+    email: string
+  }
   userId: string
   token?: string
 }

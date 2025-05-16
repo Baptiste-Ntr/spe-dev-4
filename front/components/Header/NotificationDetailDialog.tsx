@@ -9,7 +9,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Bell, CheckCircle2, XCircle, Check } from "lucide-react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
@@ -70,9 +70,11 @@ export function NotificationDetailDialog({
                             <div key={notification.id} className="p-2">
                                 <div className="flex items-start gap-2">
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={notification.senderAvatar || "/placeholder.svg"} alt={notification.senderName} />
+                                        {/* <AvatarImage src={notification.senderAvatar || "/placeholder.svg"} alt={notification.senderName} /> */}
                                         <AvatarFallback>
-                                            {notification.senderName.split(" ").map((n) => n[0]).join("")}
+                                            {notification.sender?.firstName && notification.sender?.lastName
+                                                ? `${notification.sender.firstName[0]}${notification.sender.lastName[0]}`
+                                                : notification.sender?.email?.[0] || 'U'}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 space-y-1">

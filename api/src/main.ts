@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'debug', 'log', 'verbose'],
@@ -28,6 +30,18 @@ async function bootstrap() {
     }),
   );
   app.setGlobalPrefix('api');
+
+  // Configuration Swagger
+  const config = new DocumentBuilder()
+    .setTitle('API Documentation')
+    .setDescription('Documentation de l\'API')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+
+  logger.log('Swagger documentation enabled at /api/docs');
 
   logger.log('Cookie parser enabled');
 

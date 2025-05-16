@@ -22,7 +22,7 @@ export function useFiles(folderId?: string) {
 
     const renameFile = async (id: string, title: string) => {
         try {
-            await documentService.updateDocument(id, title);
+            await documentService.renameDocument(id, title);
             return true;
         } catch (error) {
             console.error("Failed to rename document:", error);

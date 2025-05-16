@@ -15,6 +15,13 @@ export const documentService = {
             body: JSON.stringify({ title })
         });
     },
+    
+    async renameDocument(id: string, title: string): Promise<Document> {
+        return fetcher(`documents/rename/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ title })
+        });
+    },
 
     async deleteDocument(id: string): Promise<void> {
         return fetcher(`documents/${id}`, {

@@ -1,11 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsString, IsUUID } from 'class-validator';
-
-export enum NotificationType {
-    SHARE = 'SHARE',
-    MENTION = 'MENTION',
-    UPDATE = 'UPDATE'
-}
+import { NotificationType } from '@prisma/client';
 
 export enum ResourceType {
     DOCUMENT = 'DOCUMENT',
@@ -15,7 +10,7 @@ export enum ResourceType {
 export class CreateNotificationDto {
     @ApiProperty({
         enum: NotificationType,
-        example: NotificationType.SHARE,
+        example: NotificationType.DOCUMENT_UPDATE,
         description: 'Type de notification'
     })
     @IsEnum(NotificationType)
@@ -46,4 +41,20 @@ export class CreateNotificationDto {
     @IsEnum(ResourceType)
     @IsNotEmpty()
     resourceType: ResourceType;
+
+    @ApiProperty({
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        description: 'ID de l\'utilisateur qui reçoit la notification'
+    })
+    @IsUUID()
+    @IsNotEmpty()
+    userId: string;
+
+    @ApiProperty({
+        example: '123e4567-e89b-12d3-a456-426614174000',
+        description: 'ID de l\'utilisateur qui envoie la notification'
+    })
+    @IsUUID()
+    @IsNotEmpty()
+    senderId: string;
 } 

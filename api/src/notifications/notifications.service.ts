@@ -12,10 +12,24 @@ export class NotificationsService {
         return this.prisma.notification.create({
             data: {
                 type: createNotificationDto.type,
+                title: createNotificationDto.message,
                 message: createNotificationDto.message,
-                resourceId: createNotificationDto.resourceId,
-                resourceType: createNotificationDto.resourceType,
-                isRead: false
+                read: false,
+                document: {
+                    connect: {
+                        id: createNotificationDto.resourceId
+                    }
+                },
+                user: {
+                    connect: {
+                        id: createNotificationDto.userId
+                    }
+                },
+                sender: {
+                    connect: {
+                        id: createNotificationDto.senderId
+                    }
+                }
             }
         });
     }
@@ -40,7 +54,9 @@ export class NotificationsService {
     async update(id: string, updateNotificationDto: UpdateNotificationDto) {
         return this.prisma.notification.update({
             where: { id },
-            data: updateNotificationDto
+            data: {
+                read: updateNotificationDto.isRead
+            }
         });
     }
 

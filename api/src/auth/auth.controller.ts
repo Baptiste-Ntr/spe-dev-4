@@ -80,6 +80,33 @@ export class AuthController {
         return { message: 'Logged in successfully' };
     }
 
+    // Vérification du code 2FA
+    @ApiOperation({ summary: 'Verify 2FA code' })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                code: {
+                    type: 'string',
+                    example: '123456'
+                }
+            }
+        }
+    })
+    @ApiResponse({
+        status: 200,
+        description: '2FA verification successful',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    example: '2FA verification successful'
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 401, description: 'Invalid 2FA code' })
     @Post('2fa/verify')
     @UseGuards(JwtPreAccessGuard)
     async verify2FA(@Req() req, @Body('code') code: string, @Res({ passthrough: true }) res: Response) {
@@ -99,37 +126,90 @@ export class AuthController {
         return { message: '2FA verification successful' };
     }
 
-    @Post('register')
-async register(
-    @Body() body: { email: string; password: string },
-    @Res({ passthrough: true }) res: Response
-) {
-    try {
-        // Cette méthode peut échouer (email déjà utilisé, etc.)
-        const result = await this.authService.register(body);
-
-        // Si nous arrivons ici, l'inscription a réussi
-        // Définir le cookie comme dans login
-        res.cookie('access_token', result.access_token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 3600000
-        });
-        
-        // Renvoyer une réponse pour indiquer le succès
-        return { 
-            message: 'Registration successful',
-            user: {
-                email: body.email
+    // Inscription
+    @ApiOperation({ summary: 'Register new user' })
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                email: {
+                    type: 'string',
+                    example: 'newuser@example.com'
+                },
+                password: {
+                    type: 'string',
+                    example: 'password123'
+                }
             }
-        };
-    } catch (error) {
-        throw error;
-    }
-}
+        }
+    })
+    @ApiResponse({
+        status: 201,
+        description: 'User successfully registered',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    example: 'Registration successful'
+                },
+                user: {
+                    type: 'object',
+                    properties: {
+                        email: {
+                            type: 'string',
+                            example: 'newuser@example.com'
+                        }
+                    }
+                }
+            }
+        }
+    })
+    @ApiResponse({ status: 400, description: 'Email already exists' })
+    @Post('register')
+        async register(
+            @Body() body: { email: string; password: string },
+            @Res({ passthrough: true }) res: Response
+        ) {
+            try {
+                    const result = await this.authService.register(body);
 
-    @Get('logout')
+            // Définir le cookie comme dans login
+            res.cookie('access_token', result.access_token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 3600000
+            });
+
+            // Renvoyer une réponse pour indiquer le succès
+            return {
+                message: 'Registration successful',
+                user: {
+                    email: body.email
+                }
+            };
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Déconnexion
+    @ApiOperation({ summary: 'Logout user' })
+    @ApiResponse({
+        status: 200,
+        description: 'User successfully logged out',
+        schema: {
+            type: 'object',
+            properties: {
+                message: {
+                    type: 'string',
+                    example: 'Logged out successfully'
+                }
+            }
+        }
+    })
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     async logout(@Res({ passthrough: true }) res: Response) {

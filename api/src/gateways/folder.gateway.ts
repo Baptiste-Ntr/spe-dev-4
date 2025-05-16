@@ -48,6 +48,36 @@ export class FolderGateway implements OnGatewayConnection, OnGatewayDisconnect, 
     this.server.emit('fileCreated', payload);
   }
 
+  @SubscribeMessage('renameFile')
+  handleRenameFile(client: Socket, payload: any) {
+    this.logger.log(`✏️ renameFile event received: ${JSON.stringify(payload)}`);
+    this.server.emit('renameFile', payload);
+  }
+
+  @SubscribeMessage('renameFolder')
+  handleRenameFolder(client: Socket, payload: any) {
+    this.logger.log(`✏️ renameFolder event received: ${JSON.stringify(payload)}`);
+    this.server.emit('renameFolder', payload);
+  }
+
+  @SubscribeMessage('deleteFolder')
+  handleDeleteFolder(client: Socket, payload: any) {
+    this.logger.log(`🗑️ deleteFolder event received: ${JSON.stringify(payload)}`);
+    this.server.emit('deleteFolder', payload);
+  }
+
+  @SubscribeMessage('deleteFile')
+  handleDeleteFile(client: Socket, payload: any) {
+    this.logger.log(`🗑️ deleteFile event received: ${JSON.stringify(payload)}`);
+    this.server.emit('deleteFile', payload);
+  }
+
+  @SubscribeMessage('uploadFile')
+  handleUploadFile(client: Socket, payload: any) {
+    this.logger.log(`📤 uploadFile event received: ${JSON.stringify(payload)}`);
+    this.server.emit('uploadFile', payload);
+  }
+
   logFolderCreated(folder: any) {
     this.logger.log(`📁 Folder created: ${folder.name}`);
   }

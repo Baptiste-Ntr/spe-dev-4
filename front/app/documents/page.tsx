@@ -71,45 +71,123 @@ export default function DocumentExplorer() {
       return success;
     };
 
+    const handleRenameFolder = async (id: string, name: string) => {
+        const success = await renameFolder(id, name);
+        if (success) {
+            if (socket) {
+            socket.emit('renameFolder', { id, name });
+            }
+            await refreshFolders();
+        }
+        return success;
+    };
+
+    const handleDeleteFolder = async (id: string) => {
+    if (!confirm('Voulez-vous vraiment supprimer ce dossier ?')) return false;
+        const success = await deleteFolder(id);
+        if (success) {
+            if (socket) {
+            socket.emit('deleteFolder', { id });
+            }
+            await refreshFolders();
+        }
+        return success;
+    };
+
+
+
     const renameFile = async (id: string, title: string) => {
         const success = await renameFileInHook(id, title);
-        if (success) await refreshFolders();
+        if (success) {
+            if (socket) {
+                socket.emit('renameFile', { id, title });
+            }
+            await refreshFolders();
+        }
         return success;
     };
 
     const deleteFile = async (id: string) => {
         const success = await deleteFileInHook(id);
-        if (success) await refreshFolders();
+                if (success) {
+            if (socket) {
+                socket.emit('deleteFile', { id });
+            }
+            await refreshFolders();
+        }
         return success;
     };
 
     const uploadFile = async (file: File, title: string) => {
         const success = await uploadFileInHook(file, title);
-        if (success) await refreshFolders();
+                if (success) {
+            if (socket) {
+                socket.emit('uploadFile', { title, folderId: selectedFolder?.id });
+            }
+            await refreshFolders();
+        }
         return success;
     };
 
     useEffect(() => {
-      if (!socket) return;
+    if (!socket) return;
 
-      const onFolderCreated = (folder) => {
-        refreshFolders(); // Pour recharger les dossiers/fichiers
-      };
-
-      const onFileCreated = (file) => {
+    const onFolderCreated = (folder) => {
+        console.log('Folder created:', folder);
         refreshFolders();
-      };
+    };
 
-      // Écoute des événements
-      socket.on('folderCreated', onFolderCreated);
-      socket.on('fileCreated', onFileCreated);
+    const onFileCreated = (file) => {
+        console.log('File created:', file);
+        refreshFolders();
+    };
 
-      // Nettoyage à la fin
-      return () => {
+    const onFileRenamed = (file) => {
+        console.log('File renamed:', file);
+        refreshFolders();
+    };
+
+    const onFileDeleted = (file) => {
+        console.log('File deleted:', file);
+        refreshFolders();
+    };
+
+    const onFileUploaded = (file) => {
+        console.log('File uploaded:', file);
+        refreshFolders();
+    };
+
+    const onFolderRenamed = (folder) => {
+        console.log('Folder renamed:', folder);
+        refreshFolders();
+    };
+
+    const onFolderDeleted = (folder) => {
+        console.log('Folder deleted:', folder);
+        refreshFolders();
+    };
+
+    // Écoute des événements
+    socket.on('folderCreated', onFolderCreated);
+    socket.on('fileCreated', onFileCreated);
+    socket.on('renameFile', onFileRenamed);
+    socket.on('deleteFile', onFileDeleted);
+    socket.on('uploadFile', onFileUploaded);
+    socket.on('renameFolder', onFolderRenamed);
+    socket.on('deleteFolder', onFolderDeleted);
+
+    // Nettoyage à la fin
+    return () => {
         socket.off('folderCreated', onFolderCreated);
         socket.off('fileCreated', onFileCreated);
-      };
+        socket.off('renameFile', onFileRenamed);
+        socket.off('deleteFile', onFileDeleted);
+        socket.off('uploadFile', onFileUploaded);
+        socket.off('renameFolder', onFolderRenamed);
+        socket.off('deleteFolder', onFolderDeleted);
+    };
     }, [socket, refreshFolders]);
+
 
     return (
         <div className="flex h-screen">
@@ -122,7 +200,7 @@ export default function DocumentExplorer() {
                     setFolderToRename(folder);
                     setShowRenameFolderModal(true);
                 }}
-                onDeleteFolder={deleteFolder}
+                onDeleteFolder={handleDeleteFolder}
             />
 
             <main className="flex-1 p-6 overflow-auto">
@@ -170,7 +248,7 @@ export default function DocumentExplorer() {
                 <RenameFolderModal
                     folder={folderToRename}
                     onClose={() => setShowRenameFolderModal(false)}
-                    onSubmit={renameFolder}
+                    onSubmit={handleRenameFolder}
                 />
             )}
 

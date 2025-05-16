@@ -41,6 +41,26 @@ const useSocket = () => {
         console.log(`File created: ${fileData.title}`);
     });
 
+    newSocket.on('renameFile', (fileData) => {
+      console.log(`File renamed: ${fileData.title}`);
+    });
+
+    newSocket.on('deleteFile', (fileData) => {
+      console.log(`File deleted: ID ${fileData.id}`);
+    });
+
+    newSocket.on('uploadFile', (fileData) => {
+      console.log(`File uploaded: ${fileData.title}`);
+    });
+
+    newSocket.on('renameFolder', (folderData) => {
+      console.log(`Folder renamed: ${folderData.name}`);
+    });
+
+    newSocket.on('deleteFolder', (folderData) => {
+      console.log(`Folder deleted: ID ${folderData.id}`);
+    });
+
     return () => {
       newSocket.off('connect');
       newSocket.off('disconnect');
@@ -48,6 +68,11 @@ const useSocket = () => {
       newSocket.off('user disconnected');
       newSocket.off('folderCreated');
       newSocket.off('fileCreated');
+      newSocket.off('renameFile');
+      newSocket.off('deleteFile');
+      newSocket.off('uploadFile');
+      newSocket.off('renameFolder');
+      newSocket.off('deleteFolder');
       newSocket.disconnect();
     };
   }, []);

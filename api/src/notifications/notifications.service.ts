@@ -39,6 +39,20 @@ export class NotificationsService {
             where: {
                 userId
             },
+            include: {
+                sender: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                    },
+                },
+                document: {
+                    select: {
+                        title: true,
+                    },
+                },
+            },
             orderBy: {
                 createdAt: 'desc'
             }

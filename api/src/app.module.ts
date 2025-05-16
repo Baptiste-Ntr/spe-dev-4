@@ -12,6 +12,7 @@ import { FolderController } from './folders/folder.controller';
 import { InvitationModule } from './invitation/invitation.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ConfigModule } from '@nestjs/config';
+import { CallModule } from './call/call.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ConfigModule } from '@nestjs/config';
     FoldersModule,
     InvitationModule,
     NotificationsModule,
+    CallModule
   ],
   controllers: [AppController, FolderController],
   providers: [AppService],

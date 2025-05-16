@@ -8,6 +8,7 @@ import { useState, useEffect, useContext } from "react"
 import { User, Document } from "@/types/model"
 import { Dialog, DialogTrigger } from "../ui/dialog"
 import { InvitationModal } from "./invitationModal"
+import { CallModal } from "./callModal"
 import { fetcher } from "@/services/api"
 import { ScrollArea } from "../ui/scroll-area"
 import { Badge } from "../ui/badge"
@@ -28,6 +29,7 @@ export const SideBar = ({ showCollaborators, document, activeCollaborators }: Si
         createdAt: Date;
     }>>([])
     const [isInvitationModalOpen, setIsInvitationModalOpen] = useState(false)
+    const [isCallModalOpen, setIsCallModalOpen] = useState(false)
     const { user } = useContext(AuthContext) as { user: User | null }
 
     useEffect(() => {
@@ -90,10 +92,20 @@ export const SideBar = ({ showCollaborators, document, activeCollaborators }: Si
                             documentId={document.id}
                         />
                     </Dialog>
-                    <Button variant="outline" size="icon" className="h-8 w-8">
-                        <Mic className="h-4 w-4" />
-                        <span className="sr-only">Démarrer un appel audio</span>
-                    </Button>
+                    <Dialog open={isCallModalOpen} onOpenChange={setIsCallModalOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" size="icon" className="h-8 w-8">
+                                <Mic className="h-4 w-4" />
+                                <span className="sr-only">Démarrer un appel audio</span>
+                            </Button>
+                        </DialogTrigger>
+                        <CallModal
+                            open={isCallModalOpen}
+                            onOpenChange={setIsCallModalOpen}
+                            documentTitle={document.title}
+                            collaborators={collaborators}
+                        />
+                    </Dialog>
                 </div>
             </div>
             <Separator className="my-4" />

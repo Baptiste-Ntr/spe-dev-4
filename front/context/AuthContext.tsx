@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const refreshUser = async () => {
         try {
             setIsLoading(true);
-            const data = await fetcher("/api/user/me", {
+            const data = await fetcher("/user/me", {
                 credentials: "include"
             });
             setUser(data);
@@ -35,30 +35,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
     };
 
+    // Supprimez le second useEffect et gardez seulement celui-ci
     useEffect(() => {
         refreshUser();
     }, []);
-
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const data = await fetcher("/user/me", {
-                    credentials: "include"
-                })
-                setUser(data)
-            } catch (error) {
-                console.error("Error checking authentication:", error)
-                setUser(null)
-            } finally {
-                setIsLoading(false)
-            }
-        }
-        checkAuth()
-    }, [])
 
     return (
         <AuthContext.Provider value={{ user, isLoading, refreshUser }}>
             {children}
         </AuthContext.Provider>
-    )
-}
+    );
+};

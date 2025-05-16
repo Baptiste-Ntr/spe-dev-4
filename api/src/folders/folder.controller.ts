@@ -14,6 +14,7 @@ export class FolderController {
     private readonly foldersService: FoldersService,
   ) { }
 
+  // Création d'un dossier
   @Post()
   async create(@Body() createFolderDto: CreateFolderDto, @Req() req) {
     this.logger.log(`Creating folder: ${createFolderDto.name}`);
@@ -22,27 +23,32 @@ export class FolderController {
     return folder;
   }
 
+  // Récupération de tous les dossiers de l'utilisateur
   @Get()
   findAll(@Req() req) {
     this.logger.debug(`Getting all folders for user ${req.user?.userId}`);
     return this.foldersService.findAll(req.user.userId);
   }
 
+  // Récupére un dossier par son ID lier à l'utilisateur
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req) {
     return this.foldersService.findOne(id, req.user.userId);
   }
 
+  // Update d'un dossier
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateFolderDto: UpdateFolderDto, @Req() req) {
     return this.foldersService.update(id, updateFolderDto, req.user.userId);
   }
 
+  // Supression d'un dossier
   @Delete(':id')
   remove(@Param('id') id: string, @Req() req) {
     return this.foldersService.remove(id, req.user.userId);
   }
 
+  // To do : Partager un dossier
   @Post(':id/share')
   shareFolder(
     @Param('id') id: string,

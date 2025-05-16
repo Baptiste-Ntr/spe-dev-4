@@ -12,6 +12,9 @@ export class AuthService {
         private jwtService: JwtService,
     ) { }
 
+    // Vérifie si l'utilisateur existe et si le mot de passe est 
+    // correct. Si oui, retourne l'utilisateur sans le mot de passe
+    // Sinon, lance une exception UnauthorizedException
     async validateUser(email: string, pass: string): Promise<any> {
         const user = await this.userService.findUserByEmail(email);
         if (!user) {
@@ -28,6 +31,7 @@ export class AuthService {
         return result;
     }
 
+    // Permet de se connecter
     async login(user: any) {
         const payload = { email: user.email, sub: user.id, isTwoFactorEnabled: user.isTwoFactorEnabled };
         if (user.isTwoFactorEnabled) {
@@ -41,6 +45,8 @@ export class AuthService {
         };
     }
 
+    // Vérifie le code 2FA
+    // Si le code est correct, retourne un token JWT
     async verifyTwoFactorCode(userId: string, code: string) {
         const user = await this.userService.findUserById(userId);
         if (!user || !user.twoFactorSecret) {
@@ -51,7 +57,7 @@ export class AuthService {
             secret: user.twoFactorSecret,
             encoding: 'base32',
             token: code,
-            window: 1, // tolérance de 30s avant/après
+            window: 1, 
         });
 
         if (!verified) {
@@ -64,6 +70,7 @@ export class AuthService {
         };
     }
 
+    // Permet de s'inscrire
     async register(user: any) {
         // Vérifier si l'email existe déjà
         const existing = await this.userService.findUserByEmail(user.email);
@@ -80,8 +87,10 @@ export class AuthService {
         });
         return this.login(newUser);
     }
-
+    
+    // Permet de se déconnecter
     async logout(res: Response) {
+        // On supprime le cookie de l'utilisateur
         res.clearCookie('access_token', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',

@@ -1,4 +1,3 @@
-// src/documents/documents.service.ts
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDocumentDto } from './dto/create-documents.dto';
@@ -14,6 +13,7 @@ export class DocumentsService {
 
     private readonly logger = new Logger(DocumentsService.name);
 
+    // Récupération de tous les documents partagés avec l'utilisateur
     async findSharedDocuments(userId: string) {
         return this.prisma.document.findMany({
             where: {
@@ -38,8 +38,9 @@ export class DocumentsService {
         });
     }
 
+    // Création d'un document texte
     async create(dto: CreateDocumentDto, userId: string) {
-        const folderId = dto.folderId ?? this.config.get<string>('ROOT_FOLDER_ID') ?? 'default-folder';
+        const folderId = dto.folderId;
 
         const doc = await this.prisma.document.create({
             data: {
@@ -75,6 +76,7 @@ export class DocumentsService {
         return doc;
     }
 
+    // Récupération de tous les documents
     async findAll() {
         return this.prisma.document.findMany({
             include: {
@@ -84,6 +86,7 @@ export class DocumentsService {
         });
     }
 
+    // Récupération d'un document par son ID
     async findById(id: string) {
         const document = await this.prisma.document.findUnique({
             where: { id },
@@ -97,6 +100,7 @@ export class DocumentsService {
         return document;
     }
 
+    // Renommer un document
     async rename(id: string, newTitle: string) {
         return this.prisma.document.update({
             where: { id },
@@ -104,6 +108,7 @@ export class DocumentsService {
         });
     }
 
+    // Mise à jour d'un document
     async update(id: string, dto: UpdateDocumentDto) {
         return this.prisma.document.update({
             where: { id },
@@ -117,9 +122,9 @@ export class DocumentsService {
         });
     }
 
+    // Suppression d'un document
     async remove(id: string) {
         try {
-            // Récupérer le document pour vérifier son type et son chemin de fichier
             const document = await this.prisma.document.findUnique({
                 where: { id },
             });
@@ -142,7 +147,6 @@ export class DocumentsService {
                     }
                 } catch (fileError) {
                     this.logger.error(`Erreur lors de la suppression du fichier: ${fileError.message}`);
-                    // On continue même si la suppression du fichier échoue
                 }
             }
 
@@ -156,8 +160,8 @@ export class DocumentsService {
         }
     }
 
+    // Récupération des collaborateurs d'un document
     async getDocumentCollaborators(documentId: string) {
-        // Récupérer d'abord le document pour avoir l'ID de l'inviteur
         const document = await this.prisma.document.findUnique({
             where: { id: documentId },
             include: {

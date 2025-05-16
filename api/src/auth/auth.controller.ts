@@ -8,6 +8,7 @@ import { Response } from 'express';
 export class AuthController {
     constructor(private authService: AuthService) { }
 
+    // Authentification
     @Post('login')
     async login(@Body() body: { email: string; password: string }, @Res({ passthrough: true }) res: Response) {
         const user = await this.authService.validateUser(body.email, body.password);
@@ -34,6 +35,7 @@ export class AuthController {
         return { message: 'Logged in successfully' };
     }
 
+    // Vérification du code 2FA
     @Post('2fa/verify')
     @UseGuards(JwtPreAccessGuard)
     async verify2FA(@Req() req, @Body('code') code: string, @Res({ passthrough: true }) res: Response) {
@@ -53,36 +55,36 @@ export class AuthController {
         return { message: '2FA verification successful' };
     }
 
+    // Inscription
     @Post('register')
-async register(
-    @Body() body: { email: string; password: string },
-    @Res({ passthrough: true }) res: Response
-) {
-    try {
-        // Cette méthode peut échouer (email déjà utilisé, etc.)
-        const result = await this.authService.register(body);
+    async register(
+        @Body() body: { email: string; password: string },
+        @Res({ passthrough: true }) res: Response
+    ) {
+        try {
+            const result = await this.authService.register(body);
 
-        // Si nous arrivons ici, l'inscription a réussi
-        // Définir le cookie comme dans login
-        res.cookie('access_token', result.access_token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 3600000
-        });
-        
-        // Renvoyer une réponse pour indiquer le succès
-        return { 
-            message: 'Registration successful',
-            user: {
-                email: body.email
-            }
-        };
-    } catch (error) {
-        throw error;
+            // Définir le cookie comme dans login
+            res.cookie('access_token', result.access_token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                maxAge: 3600000
+            });
+
+            // Renvoyer une réponse pour indiquer le succès
+            return {
+                message: 'Registration successful',
+                user: {
+                    email: body.email
+                }
+            };
+        } catch (error) {
+            throw error;
+        }
     }
-}
 
+    // Déconnexion
     @Get('logout')
     @UseGuards(JwtAuthGuard)
     async logout(@Res({ passthrough: true }) res: Response) {

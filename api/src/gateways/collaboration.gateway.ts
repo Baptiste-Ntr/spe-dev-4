@@ -27,7 +27,7 @@ export class CollaborationGateway implements OnGatewayConnection, OnGatewayDisco
     server: Server;
 
     private readonly logger = new Logger(CollaborationGateway.name);
-    private documentRooms: Map<string, Map<string, string>> = new Map(); // documentId -> Map<socketId, userId>
+    private documentRooms: Map<string, Map<string, string>> = new Map();
 
     constructor(private prisma: PrismaService) { }
 

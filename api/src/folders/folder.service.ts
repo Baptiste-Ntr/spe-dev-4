@@ -8,11 +8,9 @@ import { Prisma } from '@prisma/client';
 export class FoldersService {
   constructor(private readonly prisma: PrismaService) { }
 
+  // Récupération de tous les dossiers de l'utilisateur
   async findAll(userId: string) {
-    try {
-      console.log(`Fetching folders for user ${userId}`);
-      
-      // Récupérer les dossiers que l'utilisateur possède
+    try {      
       const ownedFolders = await this.prisma.folder.findMany({
         where: { ownerId: userId },
         include: {
@@ -22,7 +20,7 @@ export class FoldersService {
           children: {
             select: { id: true, name: true },
           },
-          sharedWith: true, // Pour voir avec qui le dossier est partagé
+          sharedWith: true,
         },
         orderBy: { createdAt: 'asc' },
       });
@@ -42,7 +40,7 @@ export class FoldersService {
             select: { id: true, name: true },
           },
           sharedWith: {
-            where: { userId } // Uniquement les infos de partage pour cet utilisateur
+            where: { userId }
           }
         },
         orderBy: { createdAt: 'asc' },
@@ -56,8 +54,8 @@ export class FoldersService {
     }
   }
 
+  // Récupération d'un dossier par son ID
   async findOne(id: string, userId: string) {
-    // Vérifier si l'utilisateur a accès à ce dossier
     const folder = await this.prisma.folder.findUnique({
       where: { id },
       include: {
@@ -77,13 +75,9 @@ export class FoldersService {
     return folder;
   }
 
+  // Création d'un dossier
   async create(dto: CreateFolderDto, userId: string) {
-    // Vérifier si le parent existe et si l'utilisateur y a accès
-    if (dto.parentId) {
-      await this.checkFolderAccess(dto.parentId, userId);
-    }
 
-    // Utiliser la syntaxe explicite des types Prisma pour éviter les erreurs
     const data: Prisma.FolderCreateInput = {
       name: dto.name,
       parent: dto.parentId ? {
@@ -97,8 +91,8 @@ export class FoldersService {
     return this.prisma.folder.create({ data });
   }
 
+  // Modification d'un dossier
   async update(id: string, dto: UpdateFolderDto, userId: string) {
-    // Vérifier si l'utilisateur est le propriétaire
     const folder = await this.prisma.folder.findUnique({
       where: { id },
       include: { sharedWith: true }
@@ -106,7 +100,6 @@ export class FoldersService {
 
     if (!folder) throw new NotFoundException(`Folder ${id} not found`);
 
-    // Vérifier si l'utilisateur peut modifier ce dossier
     const canEdit =
       folder.ownerId === userId ||
       folder.sharedWith.some(share => share.userId === userId && share.canEdit);
@@ -115,20 +108,11 @@ export class FoldersService {
       throw new ForbiddenException('You do not have permission to update this folder');
     }
 
-    // Vérifier si le nouveau parent existe
-    if (dto.parentId) {
-      const parent = await this.prisma.folder.findUnique({ where: { id: dto.parentId } });
-      if (!parent) throw new NotFoundException(`Parent folder ${dto.parentId} not found`);
-
-      // Vérifier que le déplacement est autorisé (pas de cycle)
-      // await this.checkFolderCycle(id, dto.parentId);
-    }
-
     return this.prisma.folder.update({ where: { id }, data: dto });
   }
 
+  // Suppression d'un dossier
   async remove(id: string, userId: string) {
-    // Vérifier si l'utilisateur est le propriétaire
     const folder = await this.prisma.folder.findUnique({
       where: { id },
       include: { children: true }
@@ -138,11 +122,6 @@ export class FoldersService {
 
     if (folder.ownerId !== userId) {
       throw new ForbiddenException('Only the owner can delete a folder');
-    }
-
-    // Empêcher la suppression s'il y a des sous-dossiers
-    if (folder.children.length > 0) {
-      throw new ForbiddenException('Cannot delete folder with subfolders');
     }
 
     // Transaction pour supprimer proprement
@@ -169,7 +148,6 @@ export class FoldersService {
 
   // Ajouter un partage de dossier
   async shareFolder(folderId: string, targetUserId: string, canEdit: boolean, ownerId: string) {
-    // Vérifier que l'utilisateur actuel est propriétaire
     const folder = await this.prisma.folder.findUnique({ where: { id: folderId } });
 
     if (!folder) throw new NotFoundException(`Folder ${folderId} not found`);
@@ -177,7 +155,6 @@ export class FoldersService {
       throw new ForbiddenException('Only the owner can share this folder');
     }
 
-    // Créer le partage
     return this.prisma.folderShare.create({
       data: {
         folder: { connect: { id: folderId } },
@@ -187,50 +164,4 @@ export class FoldersService {
     });
   }
 
-  // Vérifier l'accès à un dossier
-  private async checkFolderAccess(folderId: string, userId: string) {
-    const folder = await this.prisma.folder.findUnique({
-      where: { id: folderId },
-      include: { sharedWith: true }
-    });
-
-    if (!folder) throw new NotFoundException(`Folder ${folderId} not found`);
-
-    const hasAccess =
-      folder.ownerId === userId ||
-      folder.sharedWith.some(share => share.userId === userId);
-
-    if (!hasAccess) {
-      throw new ForbiddenException('You do not have access to this folder');
-    }
-
-    return folder;
-  }
-
-  // // Empêcher la création de cycles dans l'arborescence
-  // private async checkFolderCycle(folderId: string, newParentId: string) {
-  //   // Vérifier que le nouveau parent n'est pas un descendant du dossier courant
-  //   let currentId = newParentId;
-  //   let visited = new Set<string>();
-
-  //   while (currentId) {
-  //     if (currentId === folderId) {
-  //       throw new ForbiddenException('Cannot create a cycle in folder hierarchy');
-  //     }
-
-  //     if (visited.has(currentId)) {
-  //       break; // Éviter une boucle infinie si l'arborescence est déjà cassée
-  //     }
-
-  //     visited.add(currentId);
-
-  //     const current = await this.prisma.folder.findUnique({
-  //       where: { id: currentId },
-  //       select: { parentId: true }
-  //     });
-
-  //     if (!current) break;
-  //     currentId = current.parentId || null;
-  //   }
-  // }
 }

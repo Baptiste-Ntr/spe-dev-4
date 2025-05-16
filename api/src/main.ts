@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
-import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -11,12 +10,13 @@ async function bootstrap() {
 
   const logger = new Logger('Bootstrap');
   app.use(cookieParser());
+  // Cors configuration
   app.enableCors({
     origin: process.env.FRONT_URL || ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true,
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'], // Ajouter Cookie
-    exposedHeaders: ['Set-Cookie'] // Important pour les coo,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['Set-Cookie'] 
   });
 
   logger.log('CORS configured');

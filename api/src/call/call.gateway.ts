@@ -19,7 +19,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private logger = new Logger('CallGateway');
     private userSockets = new Map<string, Socket>();
     private userNames = new Map<string, string>();
-    private activeCalls = new Map<string, string>(); // Map pour suivre les appels actifs (callerId -> targetId)
+    private activeCalls = new Map<string, string>();
 
     handleConnection(client: Socket) {
         this.logger.log(`Client connected: ${client.id}`);
@@ -36,16 +36,18 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 // Vérifier si l'utilisateur était dans un appel
                 for (const [callerId, targetId] of this.activeCalls.entries()) {
                     if (callerId === userId || targetId === userId) {
+                        // Si l'utilisateur était dans un appel, le terminer
                         this.endCallForUsers(callerId, targetId);
                     }
                 }
-
+                // Émettre un événement pour informer les autres utilisateurs
                 this.server.emit('user-left', userId);
                 break;
             }
         }
     }
 
+    // Enregistrement de l'utilisateur 
     @SubscribeMessage('register')
     handleRegister(client: Socket, data: { userId: string; userName: string }) {
         this.logger.log(`Registering user: ${data.userId} (${data.userName})`);
@@ -53,6 +55,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.userNames.set(data.userId, data.userName);
     }
 
+    // Gestion de l'appel
     @SubscribeMessage('call-user')
     handleCallUser(client: Socket, targetUserId: string) {
         this.logger.log(`Call request from ${client.id} to ${targetUserId}`);
@@ -73,6 +76,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
+    // Gestion de l'acceptation de l'appel
     @SubscribeMessage('answer-call')
     handleAnswerCall(client: Socket, targetUserId: string) {
         this.logger.log(`Answer call from ${client.id} to ${targetUserId}`);
@@ -82,6 +86,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
     }
 
+    // Fin de l'appel
     @SubscribeMessage('end-call')
     handleEndCall(client: Socket) {
         const userId = Array.from(this.userSockets.entries())
@@ -114,6 +119,7 @@ export class CallGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.logger.log(`Call ended between ${callerId} and ${targetId}`);
     }
 
+    // Gestion des signaux WebRTC
     @SubscribeMessage('signal')
     handleSignal(client: Socket, data: { target: string; signal: any }) {
         this.logger.log(`Signal from ${client.id} to ${data.target}`);

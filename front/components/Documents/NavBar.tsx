@@ -1,39 +1,41 @@
+'use client'
+
 import { Loader2 } from "lucide-react"
 import { ArrowLeft, CheckCircle2, Users } from "lucide-react"
-import Link from "next/link"
 import { Button } from "../ui/button"
 import { Save, Share, Clock } from "lucide-react"
 import { Input } from "../ui/input"
-import { useState, useEffect, useRef, useContext } from "react"
+import { useState, useEffect, useContext } from "react"
 import { useRouter } from "next/navigation"
-import { Document } from "@/app/documents/[id]/page"
-import { fetcher } from "@/lib/fetcher"
-import { toast } from "sonner"
+import { fetcher } from "@/services/api"
 import { AuthContext } from "@/context/AuthContext"
-import { User as UserType } from "@/types/model"
+import { Document, User as UserType } from "@/types/model"
 
 export const NavBar = ({
     document,
     title,
     setTitle,
     onSave,
-    saveStatus
+    saveStatus,
+    showCollaborators,
+    setShowCollaborators
 }: {
     document: Document,
     title: string,
     setTitle: (title: string) => void,
     onSave: () => Promise<void>,
-    saveStatus: "saved" | "saving" | "unsaved"
+    saveStatus: "saved" | "saving" | "unsaved",
+    showCollaborators: boolean,
+    setShowCollaborators: (show: boolean) => void
 }) => {
     const router = useRouter()
-    const [showCollaborators, setShowCollaborators] = useState(true)
     const [editedBy, setEditedBy] = useState<UserType | null>(null)
-
     const { user } = useContext(AuthContext) as { user: UserType }
 
     useEffect(() => {
         const getEditedBy = async () => {
-            const res = await fetcher(`/api/user/${user?.id}`, {
+            if (!document.updatedBy?.id) return
+            const res = await fetcher(`/user/${document.updatedBy.id}`, {
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
@@ -41,18 +43,18 @@ export const NavBar = ({
                 }
             })
             if (res) {
-                setEditedBy({ firstName: res.firstName, lastName: res.lastName })
+                setEditedBy(res)
             }
         }
         getEditedBy()
-    }, [document.updatedById])
+    }, [document.updatedBy?.id])
 
     return (
         <div className="border-b bg-background p-4">
             <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" onClick={() => router.push("/dashboard")} className="h-8 w-8">
                     <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Back to dashboard</span>
+                    <span className="sr-only">Retour au tableau de bord</span>
                 </Button>
                 <div className="flex-1">
                     <Input
@@ -92,11 +94,15 @@ export const NavBar = ({
             </div>
             <div className="mt-2 flex items-center text-xs text-muted-foreground">
                 <Clock className="mr-1 h-3 w-3" />
-                Dernière modification le {new Date(document.updatedAt).toLocaleDateString()} à {new Date(document.updatedAt).toLocaleTimeString()}
-                {editedBy && (
-                    <span className="ml-2">
-                        par {editedBy.firstName} {editedBy.lastName}
-                    </span>
+                {document.updatedAt && (
+                    <>
+                        Dernière modification le {new Date(document.updatedAt).toLocaleDateString()} à {new Date(document.updatedAt).toLocaleTimeString()}
+                        {editedBy && (
+                            <span className="ml-2">
+                                par {editedBy.firstName} {editedBy.lastName}
+                            </span>
+                        )}
+                    </>
                 )}
             </div>
         </div>

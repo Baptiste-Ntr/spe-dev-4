@@ -1,17 +1,28 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { hash } from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from '@prisma/client';
 import { CreateUserByAdminDto } from './dto/create-user-by-admin.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
     constructor(private readonly prisma: PrismaService) { }
 
     async findAllUsers() {
-        const users = await this.prisma.user.findMany();
+        const users = await this.prisma.user.findMany({
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                role: true,
+                isTwoFactorEnabled: true,
+                createdAt: true,
+                blockedAt: true,
+            }
+        });
         return users;
     }
 
@@ -69,7 +80,7 @@ export class UserService {
                     }
                 },
                 // Hash du mot de passe
-                passwordHash: await hash(password, 10)
+                passwordHash: await bcrypt.hash(password, 10)
             }
         });
 

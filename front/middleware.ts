@@ -2,46 +2,37 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-    const protectedPaths = ["/admin", "/documents", "/dashboard", "/profile", "/"]
-    const { pathname } = request.nextUrl
-
-    console.log(pathname)
-    // Ici, on lit le cookie httpOnly côté serveur
+    const { pathname } = request.nextUrl;
     const token = request.cookies.get("access_token")?.value;
-    console.log("Middleware called for path:", pathname);
-    console.log("Token found:", !!token, token ? token.substring(0, 10) + "..." : "");
 
+    // Redirection de la page d'accueil vers le dashboard
     if (pathname === "/") {
         return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
-    if (pathname === "/auth" && !token) {
+    // Gestion de la page d'authentification
+    if (pathname === "/auth") {
+        if (token) {
+            return NextResponse.redirect(new URL("/dashboard", request.url));
+        }
         return NextResponse.next();
     }
 
-    if (pathname === "/auth" && token) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    // if (!protectedPaths.some((path) => pathname.startsWith(path)))
-    //     return NextResponse.next();
-
-    // console.log(token)
-
+    // Vérification de l'authentification pour les routes protégées
     if (!token) {
-
-        console.log("Pas de token, redirection vers auth");
-
-        // Pas de cookie, donc pas authentifié
         return NextResponse.redirect(new URL("/auth", request.url));
     }
-
-    // Optionnel : tu pourrais ici décoder/valider le JWT si tu veux aller plus loin
-
 
     return NextResponse.next();
 }
 
 export const config = {
-    matcher: ["/admin", "/documents/:path*", "/dashboard/:path*", "/profile/:path*", "/", "/auth"],
+    matcher: [
+        "/",
+        "/admin",
+        "/auth",
+        "/dashboard/:path*",
+        "/documents/:path*",
+        "/profile/:path*"
+    ],
 };

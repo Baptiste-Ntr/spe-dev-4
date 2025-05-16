@@ -13,6 +13,31 @@ export class DocumentsService {
     constructor(private prisma: PrismaService, private readonly config: ConfigService,) { }
 
     private readonly logger = new Logger(DocumentsService.name);
+
+    async findSharedDocuments(userId: string) {
+        return this.prisma.document.findMany({
+            where: {
+                Collaborator: {
+                    some: {
+                        userId: userId,
+                        active: true
+                    }
+                }
+            },
+            include: {
+                folder: { select: { id: true, name: true } },
+                updatedBy: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true
+                    }
+                }
+            },
+            orderBy: { updatedAt: 'desc' }
+        });
+    }
+
     async create(dto: CreateDocumentDto, userId: string) {
         const folderId = dto.folderId ?? this.config.get<string>('ROOT_FOLDER_ID') ?? 'default-folder';
 
@@ -129,5 +154,101 @@ export class DocumentsService {
             this.logger.error(`Erreur lors de la suppression du document ${id}: ${error.message}`);
             throw error;
         }
+    }
+
+    async getDocumentCollaborators(documentId: string) {
+        // Récupérer d'abord le document pour avoir l'ID de l'inviteur
+        const document = await this.prisma.document.findUnique({
+            where: { id: documentId },
+            include: {
+                updatedBy: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                },
+                createdBy: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                }
+            }
+        });
+
+        if (!document) {
+            throw new NotFoundException('Document non trouvé');
+        }
+
+        const [allCollaborators, pendingInvitations] = await Promise.all([
+            // Récupérer tous les collaborateurs avec leur état actif
+            this.prisma.collaborator.findMany({
+                where: {
+                    documentId
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true
+                        }
+                    }
+                }
+            }),
+            // Récupérer les invitations en attente
+            this.prisma.invitation.findMany({
+                where: {
+                    documentId,
+                    status: 'PENDING'
+                },
+                include: {
+                    invitedTo: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true
+                        }
+                    }
+                }
+            })
+        ]);
+
+        // Créer la liste des collaborateurs avec leur état actif
+        const allUsers = allCollaborators.map(c => ({
+            ...c.user,
+            active: c.active
+        }));
+
+        // Ajouter le créateur à la liste des collaborateurs s'il n'est pas déjà inclus
+        if (document.createdBy?.id && !allUsers.some(c => c.id === document.createdBy?.id)) {
+            allUsers.push({
+                ...document.createdBy,
+                active: true // Le créateur est toujours considéré comme actif
+            });
+        }
+
+        // Ajouter l'inviteur à la liste des collaborateurs s'il n'y est pas déjà
+        if (document.updatedBy?.id && !allUsers.some(c => c.id === document.updatedBy?.id)) {
+            allUsers.push({
+                ...document.updatedBy,
+                active: true // L'inviteur est toujours considéré comme actif
+            });
+        }
+
+        return {
+            activeCollaborators: allUsers,
+            pendingInvitations: pendingInvitations.map(inv => ({
+                id: inv.id,
+                invitedTo: inv.invitedTo,
+                createdAt: inv.createdAt
+            }))
+        };
     }
 }

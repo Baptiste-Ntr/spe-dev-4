@@ -1,9 +1,9 @@
 "use client"
 
-import { useContext, useState } from "react"
+import { useContext } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Bell, ChevronDown, LogOut, Settings, Shield, User } from "lucide-react"
+import { ChevronDown, LogOut, Settings, Shield, User } from "lucide-react"
 
 import {
     DropdownMenu,
@@ -17,19 +17,21 @@ import {
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { AuthContext } from "@/context/AuthContext"
-import { User as UserType } from "@/types/model"
+import { User as UserType, NotificationContextType, Notification } from "@/types/model"
 import { toast } from "sonner"
-import { fetcher } from "@/lib/fetcher"
+import { fetcher } from "@/services/api"
 import { EditForm } from "./Profile/editForm"
 import { TwoFactor } from "./2FA/TwoFactor"
+import { NotificationContext } from "@/context/NotificationContext"
+import { NotificationDetailDialog } from "./NotificationDetailDialog"
+
 export function Navbar() {
     const router = useRouter()
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [notifications, setNotifications] = useState(3)
+    const { notifications, unreadCount, refreshNotifications } = useContext(NotificationContext) as NotificationContextType
 
     const handleLogout = async () => {
         try {
-            const response = await fetcher("/api/auth/logout", {
+            const response = await fetcher("/auth/logout", {
                 method: "GET",
                 credentials: "include",
                 headers: {
@@ -46,9 +48,51 @@ export function Navbar() {
         }
     }
 
-    const { user } = useContext(AuthContext) as { user: UserType | null }
+    const handleAcceptNotification = async (notification: Notification) => {
+        if (!notification.token) {
+            toast.error("Token d'invitation manquant")
+            return
+        }
 
-    console.log(user)
+        try {
+            await fetcher(`/invitation/${notification.token}/accept`, {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            toast.success("Invitation acceptée")
+            refreshNotifications()
+        } catch (error) {
+            console.error("Erreur lors de l'acceptation:", error)
+            toast.error("Erreur lors de l'acceptation")
+        }
+    }
+
+    const handleDeclineNotification = async (notification: Notification) => {
+        if (!notification.token) {
+            toast.error("Token d'invitation manquant")
+            return
+        }
+
+        try {
+            await fetcher(`/invitation/${notification.token}/decline`, {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            toast.success("Invitation refusée")
+            refreshNotifications()
+        } catch (error) {
+            console.error("Erreur lors du refus:", error)
+            toast.error("Erreur lors du refus")
+        }
+    }
+
+    const { user } = useContext(AuthContext) as { user: UserType | null }
 
     return (
         <header className="sticky top-0 z-50 border-b bg-background">
@@ -63,14 +107,13 @@ export function Navbar() {
                     </Link>
                 </div>
                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" className="relative">
-                        <Bell className="h-5 w-5" />
-                        {notifications > 0 && (
-                            <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                                {notifications}
-                            </span>
-                        )}
-                    </Button>
+                    <NotificationDetailDialog
+                        notifications={notifications}
+                        unreadCount={unreadCount}
+                        onAccept={handleAcceptNotification}
+                        onDecline={handleDeclineNotification}
+                    />
+
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="flex items-center gap-2">
@@ -82,8 +125,8 @@ export function Navbar() {
                                 <ChevronDown className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuGroup>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -99,18 +142,17 @@ export function Navbar() {
                                     <Settings className="mr-2 h-4 w-4" />
                                     <TwoFactor />
                                 </DropdownMenuItem>
-                                {/* Admin link - would be conditionally rendered based on user role */}
                                 {user?.role === "ADMIN" && (
                                     <DropdownMenuItem onClick={() => router.push("/admin")}>
                                         <Shield className="mr-2 h-4 w-4" />
-                                        <span>Admin Panel</span>
+                                        <span>Panneau d&apos;administration</span>
                                     </DropdownMenuItem>
                                 )}
                             </DropdownMenuGroup>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={handleLogout}>
                                 <LogOut className="mr-2 h-4 w-4" />
-                                <span>Log out</span>
+                                <span>Déconnexion</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

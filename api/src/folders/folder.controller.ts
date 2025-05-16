@@ -10,11 +10,16 @@ import { ShareFolderDto } from './dto/share-folder.dto';
 export class FolderController {
   private readonly logger = new Logger(FolderController.name);
 
-  constructor(private readonly foldersService: FoldersService) {}
+  constructor(
+    private readonly foldersService: FoldersService,
+  ) { }
 
   @Post()
-  create(@Body() createFolderDto: CreateFolderDto, @Req() req) {
-    return this.foldersService.create(createFolderDto, req.user.userId);
+  async create(@Body() createFolderDto: CreateFolderDto, @Req() req) {
+    this.logger.log(`Creating folder: ${createFolderDto.name}`);
+    const folder = await this.foldersService.create(createFolderDto, req.user.userId);
+
+    return folder;
   }
 
   @Get()
@@ -37,11 +42,11 @@ export class FolderController {
   remove(@Param('id') id: string, @Req() req) {
     return this.foldersService.remove(id, req.user.userId);
   }
-  
+
   @Post(':id/share')
   shareFolder(
-    @Param('id') id: string, 
-    @Body() shareDto: ShareFolderDto, 
+    @Param('id') id: string,
+    @Body() shareDto: ShareFolderDto,
     @Req() req
   ) {
     return this.foldersService.shareFolder(id, shareDto.userId, shareDto.canEdit, req.user.userId);

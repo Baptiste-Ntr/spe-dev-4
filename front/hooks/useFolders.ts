@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react';
 import { folderService } from '@/services/folderService';
 import { Folder } from '@/types/model';
@@ -15,7 +17,7 @@ export function useFolders() {
       setIsLoading(true);
       const data = await folderService.getAllFolders();
       setFolders(data);
-      
+
       if (data.length) {
         const currentFolderId = selectedFolder?.id;
         if (currentFolderId) {
@@ -64,7 +66,7 @@ export function useFolders() {
 
   const deleteFolder = async (id: string) => {
     if (!confirm('Voulez-vous vraiment supprimer ce dossier ?')) return false;
-    
+
     try {
       await folderService.deleteFolder(id);
       if (selectedFolder?.id === id) {

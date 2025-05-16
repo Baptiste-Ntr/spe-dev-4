@@ -1,15 +1,39 @@
 'use client'
 
-import Link from 'next/link'
+import { useEffect } from 'react';
+import useSocket from '../../hooks/useSocket';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation'
 
 export default function DashboardPage() {
-    const router = useRouter()
-    
+    const socket = useSocket();
+    const router = useRouter();
+
+    useEffect(() => {
+
+    if (!socket || typeof socket.on !== 'function') {
+        console.warn('socket non prêt ou invalide dans Dashboard:', socket);
+        return;
+    }
+
+    const handleConnect = () => {
+        toast.success(`Vous êtes maintenant connecté au serveur !`);
+    };
+
+    socket.on('connect', handleConnect);
+
+    return () => {
+        socket.off('connect', handleConnect);
+    };
+    }, [socket]);
+ 
+
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-6">Tableau de bord</h1>
-            
+            <ToastContainer />
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Carte d'accès aux documents */}
                 <div 

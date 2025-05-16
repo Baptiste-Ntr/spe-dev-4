@@ -6,16 +6,10 @@ import { Content } from '@/components/Documents/Content'
 import { fetcher } from '@/lib/fetcher'
 import { toast } from 'sonner'
 import { AuthContext } from '@/context/AuthContext'
-import { User as UserType } from '@/types/model'
+import { Document, User as UserType } from '@/types/model'
 import { useParams } from 'next/navigation'
-
-export interface Document {
-    id: string
-    title: string
-    content: string
-    updatedAt: string
-    updatedById: string
-}
+import { socketService } from '@/lib/socket'
+import { SideBar } from '@/components/Documents/SideBar'
 
 export default function DocumentPage() {
     const params = useParams()
@@ -23,6 +17,8 @@ export default function DocumentPage() {
     const [title, setTitle] = useState('')
     const [content, setContent] = useState('')
     const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved")
+    const [showCollaborators, setShowCollaborators] = useState(true)
+    const [activeCollaborators, setActiveCollaborators] = useState<string[]>([])
     const { user } = useContext(AuthContext) as { user: UserType | null }
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
     const contentRef = useRef(content)
@@ -42,10 +38,30 @@ export default function DocumentPage() {
                 setTitle(res.title)
                 setContent(res.content)
                 contentRef.current = res.content
+
+                if (typeof params.id === 'string' && user?.id) {
+                    socketService.joinDocument(
+                        params.id,
+                        user.id,
+                        (content: string) => {
+                            setContent(content)
+                        },
+                        (users: string[]) => {
+                            setActiveCollaborators(users)
+                        }
+                    )
+                }
             }
         }
         fetchDocument()
-    }, [params?.id])
+
+        return () => {
+            if (params?.id && typeof params.id === 'string' && user?.id) {
+                socketService.leaveDocument(params.id, user.id)
+            }
+            socketService.disconnect()
+        }
+    }, [params?.id, user?.id])
 
     useEffect(() => {
         if (document && (title !== document.title || content !== document.content)) {
@@ -109,23 +125,35 @@ export default function DocumentPage() {
     }
 
     return (
-        <div>
-            <NavBar
-                document={document}
-                title={title}
-                setTitle={setTitle}
-                onSave={handleSave}
-                saveStatus={saveStatus}
-            />
-            <Content
-                content={content}
-                setContent={(newContent) => {
-                    setContent(newContent)
-                    contentRef.current = newContent
-                    debouncedSave()
-                }}
-                onSave={debouncedSave}
-            />
+        <div className="flex h-screen">
+            <div className="flex-1 flex flex-col">
+                <NavBar
+                    document={document}
+                    title={title}
+                    setTitle={setTitle}
+                    onSave={handleSave}
+                    saveStatus={saveStatus}
+                    showCollaborators={showCollaborators}
+                    setShowCollaborators={setShowCollaborators}
+                />
+                <Content
+                    content={content}
+                    setContent={(newContent) => {
+                        setContent(newContent)
+                        contentRef.current = newContent
+                        debouncedSave()
+                    }}
+                    onSave={debouncedSave}
+                    documentId={document?.id || ''}
+                />
+            </div>
+            {showCollaborators && (
+                <SideBar
+                    showCollaborators={showCollaborators}
+                    document={document}
+                    activeCollaborators={activeCollaborators}
+                />
+            )}
         </div>
     )
 } 

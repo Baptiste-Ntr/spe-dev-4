@@ -22,67 +22,133 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+# API Documentation
+
 ## Description
+Cette API est construite avec NestJS, un framework Node.js progressif pour construire des applications serveur évolutives et efficaces.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Technologies principales
+- NestJS v11
+- Prisma (ORM)
+- TypeScript
+- Socket.IO (pour les communications en temps réel)
+- JWT pour l'authentification
+- Swagger pour la documentation API
 
-## Project setup
+## Structure du projet
 
+### Dossiers principaux
+- `/src` : Code source principal
+  - `/auth` : Gestion de l'authentification
+  - `/user` : Gestion des utilisateurs
+  - `/documents` : Gestion des documents
+  - `/folders` : Gestion des dossiers
+  - `/notifications` : Système de notifications
+  - `/invitation` : Gestion des invitations
+  - `/call` : Gestion des appels
+  - `/2fa` : Authentification à deux facteurs
+  - `/gateways` : WebSockets et communications en temps réel
+  - `/prisma` : Configuration et schémas de base de données
+
+### Configuration
+- `package.json` : Dépendances et scripts
+- `tsconfig.json` : Configuration TypeScript
+- `prisma/` : Configuration de la base de données
+
+## Base de données
+
+### Configuration Prisma
+Le projet utilise Prisma comme ORM pour interagir avec la base de données. La configuration se trouve dans le dossier `prisma/`.
+
+### Modèles de données
+Les principaux modèles de données incluent :
+- Utilisateurs (User)
+- Documents
+- Dossiers
+- Notifications
+- Invitations
+- Sessions d'appel
+
+### Migrations
+Les migrations de base de données sont gérées via Prisma. Pour appliquer les migrations :
 ```bash
-$ npm install
+npx prisma migrate dev
 ```
 
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+### Connexion à la base de données
+La connexion à la base de données est configurée via les variables d'environnement dans le fichier `.env` :
+```
+DATABASE_URL="postgresql://user:password@localhost:5432/database_name"
 ```
 
-## Run tests
+## Configuration
 
+### Variables d'environnement
+Créez un fichier `.env` à la racine du projet en copiant le fichier `.env.example
+
+## Installation
+
+1. Installer les dépendances :
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+2. Lancer l'application en mode développement :
 ```bash
-$ npm install -g mau
-$ mau deploy
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Scripts disponibles
 
-## Resources
+- `npm run build` : Compilation du projet
+- `npm run start` : Démarrage de l'application
+- `npm run start:dev` : Démarrage en mode développement avec rechargement automatique
+- `npm run start:debug` : Démarrage en mode debug
+- `npm run start:prod` : Démarrage en mode production
+- `npm run lint` : Vérification du code avec ESLint
 
-Check out a few resources that may come in handy when working with NestJS:
+## Fonctionnalités principales
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Authentification
+- JWT pour l'authentification
+- Authentification à deux facteurs (2FA)
+- Gestion des sessions
+
+### Gestion des documents
+- Upload et téléchargement de fichiers
+- Organisation en dossiers
+- Partage de documents
+
+### Communication en temps réel
+- Notifications
+- Système d'appels
+- Invitations
+
+### Sécurité
+- Validation des données
+- Protection contre les attaques CSRF
+- Gestion des permissions
+
+## Documentation API
+La documentation Swagger est disponible à l'URL : `/api-docs` lorsque l'application est en cours d'exécution.
+
+## Configuration
+L'API est accessible sur le port 8000 avec le préfixe `/api` :
+- URL de base : http://localhost:8000/api
+- Documentation Swagger : http://localhost:8000/api/docs
+
+## Contribution
+1. Créer une branche pour votre fonctionnalité
+2. Commiter vos changements
+3. Pousser vers la branche
+4. Créer une Pull Request
+
+## Auteurs
+Groupe 10 :
+- @Antonin
+- @Aurélien Destailleur
+- @Pierre Perdigues
+- @Baptiste Nautré
 
 ## Support
 
